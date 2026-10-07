@@ -14,3 +14,9 @@ https://github.com/Klerith/fernando-skills
 ```bash
 npx skills@latest add Klerith/fernando-skills
 ```
+
+## Commands
+
+- `npm run dev` — dev server (Turbopack) at http://localhost:3000
+- `npm run build` / `npm run start` — production build / serve
+- `npm run lint` — ESLint (flat config in `eslint.config.mjs`, uses `eslint-config-next`)
