@@ -1,10 +1,21 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GAMES, getGame } from "@/lib/games";
 import { seededScores } from "@/lib/scores";
 
 export function generateStaticParams() {
   return GAMES.map((g) => ({ id: g.id }));
+}
+
+export async function generateMetadata({ params }: PageProps<"/juegos/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const game = getGame(id);
+  if (!game) return { title: "Juego no encontrado · Arcade Vault" };
+  return {
+    title: `${game.title} · Arcade Vault`,
+    description: game.short,
+  };
 }
 
 export default async function GameDetail({ params }: PageProps<"/juegos/[id]">) {
