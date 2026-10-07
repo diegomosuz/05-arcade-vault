@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 export type User = { name: string };
 export type SavedScore = { game: string; score: number; name: string; at: number };
@@ -69,8 +69,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
+const subscribeNoop = () => () => {};
+
 export function useSession(): SessionContextValue {
   const ctx = useContext(SessionContext);
+  // false en servidor y durante la hidratación; true después. Un límite de Suspense
+  // puede hidratarse tras el efecto del provider: sin esto vería `user`/`ready` ya
+  // actualizados y no coincidiría con el HTML del servidor.
+  const hydrated = useSyncExternalStore(subscribeNoop, () => true, () => false);
   if (!ctx) throw new Error("useSession debe usarse dentro de <SessionProvider>");
-  return ctx;
+  if (hydrated) return ctx;
+  return { ...ctx, user: null, ready: false };
 }
