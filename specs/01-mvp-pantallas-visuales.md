@@ -120,7 +120,7 @@ Antes del paso 1, leer la guía relevante en `node_modules/next/dist/docs/` (App
 - [ ] `npm run lint` termina sin errores.
 - [ ] No hay errores ni advertencias de hidratación en la consola del navegador en ninguna de las 5 rutas.
 - [ ] Las 5 rutas (`/`, `/juegos/bloque-buster`, `/juegos/bloque-buster/jugar`, `/acceso`, `/salon`) cargan con el estilo de la plantilla (fondo con rejilla, scanlines y neón).
-- [ ] `/juegos/no-existe` y `/juegos/no-existe/jugar` devuelven 404.
+- [ ] `/juegos/no-existe` y `/juegos/no-existe/jugar` muestran la página 404 (`notFound()`). Con `cacheComponents` el estado HTTP queda en 200 porque el shell ya se envió; Next añade `<meta name="robots" content="noindex">`. Un 404 HTTP real requeriría un Proxy y queda fuera de este spec.
 - [ ] No se añaden clases nuevas a `globals.css` salvo que falte alguna usada por la plantilla; `references/templates/` queda intacto.
 
 **Navbar y footer**
