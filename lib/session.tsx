@@ -28,6 +28,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(USER_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as User;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- lectura diferida a propósito (spec 01)
         if (parsed && typeof parsed.name === "string") setUser(parsed);
       }
     } catch {
