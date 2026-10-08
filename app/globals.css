@@ -190,7 +190,8 @@ a { color: inherit; text-decoration: none; }
 .av-nav .coin-counter { display: flex; align-items: center; gap: 8px; font-family: var(--pixel); font-size: 9px; color: var(--yellow); }
 .av-nav .coin-counter .coin { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff8b0, #f5ff00 60%, #b0b800); box-shadow: 0 0 8px var(--yellow); }
 .av-nav .auth-btn { margin-left: 16px; }
-.av-nav .hamburger { display: none; }
+/* "≡" no existe en Press Start 2P: la plantilla lo toma de system-ui; aquí next/font antepone un fallback Arial escalado. */
+.av-nav .hamburger { display: none; font-family: system-ui, monospace; }
 
 @media (max-width: 840px) {
   .av-nav { padding: 12px 16px; }
@@ -320,6 +321,7 @@ a { color: inherit; text-decoration: none; }
 .av-search:focus-within { border-color: var(--cyan); box-shadow: 0 0 12px rgba(0,245,255,0.35); }
 .av-search input {
   flex: 1; background: transparent; border: 0; outline: 0;
+  padding: 1px 2px; /* el reset de Tailwind lo pone a 0; la plantilla usa el valor por defecto */
   color: var(--ink); font-size: 13px; letter-spacing: 0.04em;
 }
 .av-search input::placeholder { color: var(--ink-faint); }
