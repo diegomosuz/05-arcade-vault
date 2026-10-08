@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -18,7 +19,16 @@ export async function generateMetadata({ params }: PageProps<"/juegos/[id]">): P
   };
 }
 
-export default async function GameDetail({ params }: PageProps<"/juegos/[id]">) {
+export default function GameDetailPage({ params }: PageProps<"/juegos/[id]">) {
+  // `params` se lee dentro de Suspense para que el shell estático no dependa de la URL.
+  return (
+    <Suspense fallback={null}>
+      <GameDetail params={params} />
+    </Suspense>
+  );
+}
+
+async function GameDetail({ params }: { params: PageProps<"/juegos/[id]">["params"] }) {
   const { id } = await params;
   const game = getGame(id);
   if (!game) notFound();
