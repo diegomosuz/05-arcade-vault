@@ -13,7 +13,8 @@ export function Nav() {
   const inicio = pathname === "/";
   const biblioteca = pathname.startsWith("/biblioteca") || pathname.startsWith("/juegos");
   const salon = pathname.startsWith("/salon");
-  const acceso = pathname.startsWith("/acceso");
+  const acerca = pathname.startsWith("/acerca-de");
+  const acceso =pathname.startsWith("/acceso");
   const close = () => setOpen(false);
 
   return (
@@ -29,6 +30,7 @@ export function Nav() {
           <Link href="/" className={inicio ? "active" : ""}>Inicio</Link>
           <Link href="/biblioteca" className={biblioteca ? "active" : ""}>Biblioteca</Link>
           <Link href="/salon" className={salon ? "active" : ""}>Salón de la Fama</Link>
+          <Link href="/acerca-de" className={acerca ? "active" : ""}>Acerca de</Link>
         </div>
         <div className="spacer"></div>
         <div className="coin-counter">
@@ -50,6 +52,7 @@ export function Nav() {
         <Link href="/" className={inicio ? "active" : ""} onClick={close}>Inicio</Link>
         <Link href="/biblioteca" className={biblioteca ? "active" : ""} onClick={close}>Biblioteca</Link>
         <Link href="/salon" className={salon ? "active" : ""} onClick={close}>Salón de la Fama</Link>
+        <Link href="/acerca-de" className={acerca ? "active" : ""} onClick={close}>Acerca de</Link>
         <Link href="/acceso" className={acceso ? "active" : ""} onClick={close}>
           {ready && user ? "Cuenta" : "Iniciar Sesión"}
         </Link>
