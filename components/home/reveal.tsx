@@ -4,11 +4,12 @@ import { useEffect, useRef } from "react";
 
 type RevealProps = {
   className?: string;
+  "aria-hidden"?: boolean;
   children: React.ReactNode;
 };
 
 // Envuelve una sección y le añade `.in` al entrar en el viewport (una sola vez).
-export function Reveal({ className = "", children }: RevealProps) {
+export function Reveal({ className = "", "aria-hidden": ariaHidden, children }: RevealProps) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function Reveal({ className = "", children }: RevealProps) {
   }, []);
 
   return (
-    <section ref={ref} className={`${className} reveal`.trim()}>
+    <section ref={ref} className={`${className} reveal`.trim()} aria-hidden={ariaHidden}>
       {children}
     </section>
   );

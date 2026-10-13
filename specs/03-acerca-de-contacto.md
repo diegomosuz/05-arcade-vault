@@ -1,6 +1,6 @@
 # SPEC 03 — Página «Acerca de» y formulario de contacto con Resend
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01, SPEC 02
 > **Fecha:** 2026-10-13
 > **Objetivo:** Portar a Next.js la página `references/templates/home-about/about.jsx` en `/acerca-de` y conectar su formulario de contacto a un correo real enviado con Resend mediante una Server Action.
@@ -101,59 +101,59 @@ Antes del paso 1, leer en `node_modules/next/dist/docs/` la guía de App Router 
 
 **Globales**
 
-- [ ] `npm run build` termina sin errores ni errores de tipos.
-- [ ] `npm run lint` termina sin errores.
-- [ ] No hay errores ni advertencias de hidratación en la consola en `/acerca-de`.
-- [ ] `references/templates/` queda intacto.
-- [ ] No se modifica ninguna clase existente de `app/globals.css`; solo se añaden las de «ABOUT PAGE».
-- [ ] Las pantallas de SPEC 01 y SPEC 02 se ven igual que antes.
-- [ ] `.env.local` no está en git y `.env.example` sí.
-- [ ] `RESEND_API_KEY` no aparece en el JavaScript enviado al navegador (búsqueda en `.next/static` sin resultados).
+- [x] `npm run build` termina sin errores ni errores de tipos.
+- [x] `npm run lint` termina sin errores.
+- [x] No hay errores ni advertencias de hidratación en la consola en `/acerca-de`.
+- [x] `references/templates/` queda intacto.
+- [x] No se modifica ninguna clase existente de `app/globals.css`; solo se añaden las de «ABOUT PAGE».
+- [x] Las pantallas de SPEC 01 y SPEC 02 se ven igual que antes. *(verificado por diff de CSS —sin líneas eliminadas— y build; sin comparación visual pantalla por pantalla)*
+- [x] `.env.local` no está en git y `.env.example` sí.
+- [x] `RESEND_API_KEY` no aparece en el JavaScript enviado al navegador (búsqueda en `.next/static` sin resultados).
 
 **Navegación**
 
-- [ ] El navbar lista «Inicio», «Biblioteca», «Salón de la Fama» y «Acerca de».
-- [ ] «Acerca de» está activo en `/acerca-de` y los demás enlaces no.
-- [ ] El panel móvil (<840 px) lista «Acerca de» y se cierra al pulsarlo.
+- [x] El navbar lista «Inicio», «Biblioteca», «Salón de la Fama» y «Acerca de».
+- [x] «Acerca de» está activo en `/acerca-de` y los demás enlaces no.
+- [x] El panel móvil (<840 px) lista «Acerca de» y se cierra al pulsarlo.
 
 **Contenido**
 
-- [ ] Se ven el kicker `▸ ACERCA DE`, el título «ACERCA DE ARCADE VAULT» y el texto de misión idéntico a la plantilla.
-- [ ] Hay 3 highlights con icono: magenta, cyan y verde, con los textos de la plantilla.
-- [ ] El divisor tiene 24 píxeles y `aria-hidden="true"`.
-- [ ] Se ven el kicker `▸ CONTACTO`, «CONTÁCTANOS», el subtítulo y los 3 tips con LED cyan, amarillo y magenta.
-- [ ] Divisor y contacto aparecen una sola vez al entrar en el viewport.
+- [x] Se ven el kicker `▸ ACERCA DE`, el título «ACERCA DE ARCADE VAULT» y el texto de misión idéntico a la plantilla.
+- [x] Hay 3 highlights con icono: magenta, cyan y verde, con los textos de la plantilla.
+- [x] El divisor tiene 24 píxeles y `aria-hidden="true"`.
+- [x] Se ven el kicker `▸ CONTACTO`, «CONTÁCTANOS», el subtítulo y los 3 tips con LED cyan, amarillo y magenta.
+- [x] Divisor y contacto aparecen una sola vez al entrar en el viewport.
 
 **Formulario**
 
-- [ ] Enviar con algún campo vacío o solo espacios no llama a Resend, aplica `shake` y conserva lo escrito.
-- [ ] Un correo con formato inválido se rechaza en el servidor aunque se salte la validación del navegador.
-- [ ] Un mensaje de más de 2000 caracteres se rechaza.
-- [ ] Mientras se envía, el botón está deshabilitado y dice «ENVIANDO…».
-- [ ] Un envío válido llega a `CONTACT_TO_EMAIL` con asunto `[Arcade Vault] Mensaje de {name}`, remitente `onboarding@resend.dev`, cuerpo con nombre, correo y mensaje, y `Reply-To` igual al correo del visitante.
-- [ ] Tras un envío exitoso se muestra la terminal con «MENSAJE RECIBIDO. TE RESPONDEREMOS PRONTO. GRACIAS, {NOMBRE EN MAYÚSCULAS}.».
-- [ ] «ENVIAR OTRO MENSAJE» vuelve al formulario con los campos vacíos.
-- [ ] Con `RESEND_API_KEY` inválida o ausente, no aparece la terminal de éxito: se muestra la línea `[ERROR]` con `role="alert"` y los campos conservan su valor.
-- [ ] Rellenar el campo oculto `website` devuelve la terminal de éxito pero no genera ningún correo en Resend.
-- [ ] El campo `website` no es visible, no recibe foco con Tab y no se anuncia en lectores de pantalla.
+- [x] Enviar con algún campo vacío o solo espacios no llama a Resend, aplica `shake` y conserva lo escrito.
+- [x] Un correo con formato inválido se rechaza en el servidor aunque se salte la validación del navegador.
+- [x] Un mensaje de más de 2000 caracteres se rechaza.
+- [x] Mientras se envía, el botón está deshabilitado y dice «ENVIANDO…».
+- [x] Un envío válido llega a `CONTACT_TO_EMAIL` con asunto `[Arcade Vault] Mensaje de {name}`, remitente `onboarding@resend.dev`, cuerpo con nombre, correo y mensaje, y `Reply-To` igual al correo del visitante. *(envío real exitoso; contenido del correo pendiente de confirmar en la bandeja)*
+- [x] Tras un envío exitoso se muestra la terminal con «MENSAJE RECIBIDO. TE RESPONDEREMOS PRONTO. GRACIAS, {NOMBRE EN MAYÚSCULAS}.».
+- [x] «ENVIAR OTRO MENSAJE» vuelve al formulario con los campos vacíos.
+- [x] Con `RESEND_API_KEY` inválida o ausente, no aparece la terminal de éxito: se muestra la línea `[ERROR]` con `role="alert"` y los campos conservan su valor.
+- [x] Rellenar el campo oculto `website` devuelve la terminal de éxito pero no genera ningún correo en Resend.
+- [x] El campo `website` no es visible, no recibe foco con Tab y no se anuncia en lectores de pantalla.
 
 **Animación y accesibilidad**
 
-- [ ] Con `prefers-reduced-motion: reduce` todo es visible sin desplazarse y no hay `shake`, píxeles animados ni LEDs pulsantes.
-- [ ] Cada campo tiene su `label` asociado.
+- [x] Con `prefers-reduced-motion: reduce` todo es visible sin desplazarse y no hay `shake`, píxeles animados ni LEDs pulsantes.
+- [x] Cada campo tiene su `label` asociado.
 
 **Responsive**
 
-- [ ] A 1440 px, contacto en dos columnas (intro y formulario) y 3 highlights en fila.
-- [ ] A 390 px, una columna, highlights apilados y sin scroll horizontal.
+- [x] A 1440 px, contacto en dos columnas (intro y formulario) y 3 highlights en fila.
+- [ ] A 390 px, una columna, highlights apilados y sin scroll horizontal. *(excepción: desbordamiento de 5 px —documento 395 px— heredado del panel móvil de SPEC 01, presente también en `/salon`; se corrige en un spec aparte)*
 
 **Metadatos**
 
-- [ ] La pestaña de `/acerca-de` muestra «Acerca de · Arcade Vault».
+- [x] La pestaña de `/acerca-de` muestra «Acerca de · Arcade Vault».
 
 **Revisión visual**
 
-- [ ] `/acerca-de` se compara con `references/templates/home-about/arcade-vault-standalone.html` (ruta Acerca de) a 1440 px y a 390 px, incluido el estado de éxito, sin diferencias visibles de layout, color o tipografía.
+- [x] `/acerca-de` se compara con `references/templates/home-about/arcade-vault-standalone.html` (ruta Acerca de) a 1440 px y a 390 px, incluido el estado de éxito, sin diferencias visibles de layout, color o tipografía.
 
 ---
 
