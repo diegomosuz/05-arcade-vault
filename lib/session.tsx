@@ -12,23 +12,15 @@ import {
 import { createClient } from "@/lib/supabase/client";
 
 export type User = { id: string; name: string }; // name = profiles.username
-export type SavedScore = {
-  game: string;
-  score: number;
-  name: string;
-  at: number;
-};
 
 type SessionContextValue = {
   user: User | null;
   signOut: () => Promise<void>;
-  saveScore: (e: SavedScore) => void;
   ready: boolean;
 };
 
 // Clave heredada del login simulado (SPEC 01): se elimina al montar.
 const LEGACY_USER_KEY = "av_user";
-const SCORES_KEY = "av_scores";
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
@@ -100,18 +92,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     await createClient().auth.signOut();
   }, []);
 
-  const saveScore = useCallback((e: SavedScore) => {
-    try {
-      const raw = localStorage.getItem(SCORES_KEY);
-      const list: SavedScore[] = raw ? JSON.parse(raw) : [];
-      list.push(e);
-      localStorage.setItem(SCORES_KEY, JSON.stringify(list));
-    } catch {}
-  }, []);
-
   const value = useMemo(
-    () => ({ user, signOut, saveScore, ready }),
-    [user, signOut, saveScore, ready],
+    () => ({ user, signOut, ready }),
+    [user, signOut, ready],
   );
 
   return (
