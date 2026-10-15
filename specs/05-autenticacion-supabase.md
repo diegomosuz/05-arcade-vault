@@ -1,6 +1,6 @@
 # SPEC 05 — Autenticación real con Supabase Auth y perfiles públicos
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-10-15
 > **Objetivo:** Sustituir el login simulado de `localStorage` por registro e inicio de sesión reales con correo y contraseña en Supabase Auth, con un `username` público guardado en la tabla `profiles`.
