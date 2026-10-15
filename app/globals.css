@@ -732,6 +732,15 @@ a { color: inherit; text-decoration: none; }
   50% { transform: translate(20px, 10px); }
 }
 
+/* real game canvas (Asteroids): 800x600 scaled to the 4:3 CRT screen */
+.crt-screen .asteroids-canvas {
+  position: absolute; inset: 0;
+  display: block;
+  width: 100%; height: 100%;
+  max-width: 100%;
+  background: #000;
+}
+
 /* game over modal */
 .modal-bd {
   position: fixed; inset: 0; z-index: 80;
