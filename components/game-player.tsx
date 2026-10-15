@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { submitScore } from "@/app/juegos/[id]/jugar/actions";
 import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
 import type { AsteroidsSnapshot } from "@/lib/games/asteroids/engine";
 import { useSession } from "@/lib/session";
@@ -16,15 +17,34 @@ function subscribeReducedMotion(cb: () => void) {
   return () => mq.removeEventListener("change", cb);
 }
 
-export function GamePlayer({ id, title }: { id: string; title: string }) {
-  const { user, saveScore } = useSession();
+type SaveState = "idle" | "saving" | "saved" | "error";
+
+const NOTICE_STYLE = {
+  margin: "0 0 14px",
+  textAlign: "center",
+  fontFamily: "var(--mono)",
+  fontSize: 12,
+  letterSpacing: "0.08em",
+  color: "var(--ink-dim)",
+} as const;
+
+// `ranked`: el juego acepta puntuaciones reales (solo los juegos con motor propio).
+export function GamePlayer({
+  id,
+  title,
+  ranked,
+}: {
+  id: string;
+  title: string;
+  ranked: boolean;
+}) {
+  const { user } = useSession();
   const [run, setRun] = useState<Run>({ score: 0, level: 1 });
   const [lives, setLives] = useState(3);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  // null = sin editar: el nombre sigue a la sesión (que se lee tras el montaje).
-  const [typedName, setTypedName] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const savingRef = useRef(false);
   // Cambia para reiniciar el motor real en «JUGAR DE NUEVO».
   const [runKey, setRunKey] = useState(0);
   // Se pone a true con el primer REANUDAR (relevante con prefers-reduced-motion).
@@ -42,7 +62,7 @@ export function GamePlayer({ id, title }: { id: string; title: string }) {
   const awaitStart = isReal && reducedMotion && !started;
   const isPaused = paused || awaitStart;
 
-  const name = typedName ?? user?.name ?? "INVITADO";
+  const name = user?.name ?? "INVITADO";
   const { score, level } = run;
 
   // Math.random solo dentro del intervalo (nunca en el render inicial).
@@ -87,7 +107,7 @@ export function GamePlayer({ id, title }: { id: string; title: string }) {
       setLives(3);
       setPaused(false);
       setOver(false);
-      setSaved(false);
+      setSaveState("idle");
       setStarted(false);
     };
   }, [isReal]);
@@ -109,7 +129,22 @@ export function GamePlayer({ id, title }: { id: string; title: string }) {
     setLives(3);
     setPaused(false);
     setOver(false);
-    setSaved(false);
+    setSaveState("idle");
+  };
+
+  const handleSave = async () => {
+    // El estado «saving» deshabilita el botón, pero un doble clic puede llegar antes del render.
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaveState("saving");
+    try {
+      const result = await submitScore(id, score);
+      setSaveState(result.status === "saved" ? "saved" : "error");
+    } catch {
+      setSaveState("error");
+    } finally {
+      savingRef.current = false;
+    }
   };
 
   return (
@@ -219,27 +254,52 @@ export function GamePlayer({ id, title }: { id: string; title: string }) {
             <h2>FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
-            {!saved ? (
-              <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) =>
-                    setTypedName(e.target.value.toUpperCase().slice(0, 10))
-                  }
-                  placeholder="TUS INICIALES"
-                />
+            {!ranked ? (
+              <div style={NOTICE_STYLE}>
+                ESTE JUEGO ES UNA DEMO: SU PUNTUACIÓN NO SE GUARDA.
+              </div>
+            ) : !user ? (
+              <>
+                <div style={NOTICE_STYLE}>
+                  INICIA SESIÓN PARA GUARDAR TU PUNTUACIÓN.
+                </div>
+                <Link
+                  href="/acceso"
+                  className="btn yellow"
+                  style={{ display: "block", textAlign: "center" }}
+                >
+                  INICIAR SESIÓN
+                </Link>
+              </>
+            ) : saveState === "saved" ? (
+              <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+            ) : (
+              <>
+                <div style={NOTICE_STYLE}>JUGANDO COMO {user.name}</div>
                 <button
                   className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: id, score, name, at: Date.now() });
-                    setSaved(true);
-                  }}
+                  style={{ width: "100%" }}
+                  disabled={saveState === "saving"}
+                  onClick={handleSave}
                 >
-                  GUARDAR PUNTUACIÓN
+                  {saveState === "saving" ? "GUARDANDO…" : "GUARDAR PUNTUACIÓN"}
                 </button>
-              </div>
-            ) : (
-              <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+                {saveState === "error" && (
+                  <div
+                    role="alert"
+                    style={{
+                      marginTop: 14,
+                      fontFamily: "var(--mono)",
+                      fontSize: 12,
+                      lineHeight: 1.6,
+                      color: "var(--magenta)",
+                      textShadow: "0 0 6px rgba(255,0,110,0.45)",
+                    }}
+                  >
+                    [ERROR] NO SE PUDO GUARDAR. INTÉNTALO DE NUEVO.
+                  </div>
+                )}
+              </>
             )}
             <div className="actions">
               <button className="btn" onClick={restart}>

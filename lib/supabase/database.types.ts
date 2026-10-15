@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      games: {
+        Row: {
+          cat: string
+          color: string
+          cover: string
+          id: string
+          long: string
+          max_score: number
+          position: number
+          ranked: boolean
+          short: string
+          title: string
+        }
+        Insert: {
+          cat: string
+          color: string
+          cover: string
+          id: string
+          long: string
+          max_score?: number
+          position: number
+          ranked?: boolean
+          short: string
+          title: string
+        }
+        Update: {
+          cat?: string
+          color?: string
+          cover?: string
+          id?: string
+          long?: string
+          max_score?: number
+          position?: number
+          ranked?: boolean
+          short?: string
+          title?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -32,9 +71,89 @@ export type Database = {
         }
         Relationships: []
       }
+      scores: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      game_stats: {
+        Row: {
+          best_score: number | null
+          game_id: string | null
+          plays: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaderboard: {
+        Row: {
+          achieved_at: string | null
+          best_score: number | null
+          game_id: string | null
+          rank: number | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never

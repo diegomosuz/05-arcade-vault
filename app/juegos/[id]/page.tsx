@@ -2,16 +2,18 @@ import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { GAMES, getGame } from "@/lib/games";
-import { seededScores } from "@/lib/scores";
+import { getGame, getGames } from "@/lib/db/games";
 
-export function generateStaticParams() {
-  return GAMES.map((g) => ({ id: g.id }));
+export async function generateStaticParams() {
+  const games = await getGames();
+  return games.map((g) => ({ id: g.id }));
 }
 
-export async function generateMetadata({ params }: PageProps<"/juegos/[id]">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/juegos/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const game = getGame(id);
+  const game = await getGame(id);
   if (!game) return { title: "Juego no encontrado · Arcade Vault" };
   return {
     title: `${game.title} · Arcade Vault`,
@@ -28,12 +30,14 @@ export default function GameDetailPage({ params }: PageProps<"/juegos/[id]">) {
   );
 }
 
-async function GameDetail({ params }: { params: PageProps<"/juegos/[id]">["params"] }) {
+async function GameDetail({
+  params,
+}: {
+  params: PageProps<"/juegos/[id]">["params"];
+}) {
   const { id } = await params;
-  const game = getGame(id);
+  const game = await getGame(id);
   if (!game) notFound();
-
-  const scores = seededScores(id.length * 17 + 3, 10);
 
   return (
     <div className="av-detail fade-in">
@@ -53,24 +57,42 @@ async function GameDetail({ params }: { params: PageProps<"/juegos/[id]">["param
           <div className="stat-strip">
             <div>
               <div className="l">Partidas</div>
-              <div className="v">{game.plays}</div>
+              <div className="v">
+                {game.plays > 0 ? game.plays.toLocaleString("es-ES") : "—"}
+              </div>
             </div>
             <div>
               <div className="l">Mejor global</div>
-              <div className="v" style={{ color: "var(--magenta)", textShadow: "0 0 6px rgba(255,0,110,0.5)" }}>
-                {game.best.toLocaleString("es-ES")}
+              <div
+                className="v"
+                style={{
+                  color: "var(--magenta)",
+                  textShadow: "0 0 6px rgba(255,0,110,0.5)",
+                }}
+              >
+                {game.best > 0 ? game.best.toLocaleString("es-ES") : "—"}
               </div>
             </div>
             <div>
               <div className="l">Dificultad</div>
-              <div className="v" style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}>
+              <div
+                className="v"
+                style={{
+                  color: "var(--yellow)",
+                  textShadow: "0 0 6px rgba(245,255,0,0.5)",
+                }}
+              >
                 ★ ★ ★ ☆ ☆
               </div>
             </div>
           </div>
           <div className="detail-actions">
-            <Link href={`/juegos/${game.id}/jugar`} className="btn xl pulse">▶  JUGAR AHORA</Link>
-            <Link href="/biblioteca" className="btn ghost lg">VOLVER AL VAULT</Link>
+            <Link href={`/juegos/${game.id}/jugar`} className="btn xl pulse">
+              ▶ JUGAR AHORA
+            </Link>
+            <Link href="/biblioteca" className="btn ghost lg">
+              VOLVER AL VAULT
+            </Link>
           </div>
         </div>
       </div>
@@ -78,19 +100,21 @@ async function GameDetail({ params }: { params: PageProps<"/juegos/[id]">["param
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
-          {scores.map((r, i) => (
-            <div
-              key={r.name}
-              className={"lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}
-            >
-              <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
-              <div className="pl">
-                {r.name}
-                <div style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.1em" }}>{r.date}</div>
-              </div>
-              <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+          <div
+            style={{
+              padding: "28px 8px 8px",
+              textAlign: "center",
+              color: "var(--ink-faint)",
+              lineHeight: 1.6,
+            }}
+          >
+            <div style={{ marginBottom: 18 }}>
+              EL RANKING DE {game.title} VIVE EN EL SALÓN DE LA FAMA.
             </div>
-          ))}
+            <Link href="/salon" className="btn">
+              VER SALÓN DE LA FAMA
+            </Link>
+          </div>
         </div>
       </aside>
     </div>

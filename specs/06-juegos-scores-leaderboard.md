@@ -1,6 +1,6 @@
 # SPEC 06 — Tabla de juegos, puntuaciones reales y leaderboard
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01, SPEC 04, SPEC 05
 > **Fecha:** 2026-10-15
 > **Objetivo:** Mover el catálogo de juegos a una tabla `games` de Supabase, guardar las puntuaciones de jugadores autenticados en una tabla `scores` mediante una Server Action y mostrar el ranking real por juego en el Salón de la Fama.
@@ -41,6 +41,7 @@ Es el primer spec con datos compartidos entre usuarios, por eso fija antes de es
 - Filtros por periodo (semanal, mensual) o paginación del ranking.
 - Edición del catálogo desde la interfaz.
 - Tiempo real (Supabase Realtime) para el ranking.
+- Devolver un código HTTP 404 real para ids de juego inexistentes (requiere cambiar la estructura de `Suspense` heredada del SPEC 04).
 - Tests automatizados (no hay test runner configurado).
 - Internacionalización: solo español.
 
@@ -134,7 +135,7 @@ Antes del paso 1, leer en `node_modules/next/dist/docs/` las guías de App Route
 3. **Tipos.** Regenerar `lib/supabase/database.types.ts`. Verificación: `npm run build` pasa.
 4. **Capa de datos.** Crear `lib/db/games.ts` con `getGames()` y `getGame(id)` (cacheadas, combinando `games` y `game_stats`). Se mantiene `GAMES` todavía. Verificación: `npm run build` pasa.
 5. **Biblioteca y home.** `app/biblioteca/page.tsx`, `app/page.tsx` y los componentes `library.tsx`, `game-card.tsx` y `home/games-preview.tsx` reciben `games` por props en lugar de importar `GAMES`; `best` y `plays` salen de la base de datos con «—» si es 0. Verificación: `/` y `/biblioteca` muestran 8 juegos con los mismos textos y filtros; el resto de pantallas no cambia.
-6. **Detalle y jugar.** `app/juegos/[id]/page.tsx` y `app/juegos/[id]/jugar/page.tsx` usan `getGames()` en `generateStaticParams` y `getGame()` en página y metadatos; `notFound()` si el id no existe. `GamePlayer` recibe `ranked`. Verificación: `/juegos/rocas`, `/juegos/rocas/jugar` y un id inexistente (404) funcionan.
+6. **Detalle y jugar.** `app/juegos/[id]/page.tsx` y `app/juegos/[id]/jugar/page.tsx` usan `getGames()` en `generateStaticParams` y `getGame()` en página y metadatos; `notFound()` si el id no existe. `GamePlayer` recibe `ranked`. Verificación: `/juegos/rocas`, `/juegos/rocas/jugar` y un id inexistente (página de no encontrado) funcionan.
 7. **Leaderboard.** Crear `lib/db/leaderboard.ts` con la lectura del top 12 por juego. Reescribir `components/hall-of-fame.tsx` con datos por props y la fila «TU MEJOR MARCA» del usuario autenticado (lectura de sus filas en `leaderboard` desde el navegador al montar); añadir estados vacíos («AÚN NO HAY MARCAS · SÉ EL PRIMERO», y para el usuario «AÚN NO TIENES MARCA EN {JUEGO}»). Eliminar `lib/scores.ts` y la constante `GAMES` de `lib/games.ts`. Verificación: `/salon` muestra las 8 pestañas sin filas simuladas y `npm run build` pasa.
 8. **Server Action.** Crear `app/juegos/[id]/jugar/actions.ts` con `submitScore`: sesión, juego existente y `ranked`, entero entre 0 y `max_score`, inserción con el cliente de la clave secreta e invalidación de la etiqueta `scores`. Sin registrar datos de la partida en logs. Verificación: `npm run build` pasa; una llamada con sesión válida inserta una fila, y sin sesión devuelve `unauthenticated`.
 9. **Modal de fin de partida.** En `components/game-player.tsx`: con sesión, mostrar «JUGANDO COMO {USERNAME}» y el botón «GUARDAR PUNTUACIÓN» que llama a `submitScore` (estados «GUARDANDO…», guardado `▸ PUNTUACIÓN GUARDADA_` y error `[ERROR] NO SE PUDO GUARDAR. INTÉNTALO DE NUEVO.` con `role="alert"` y botón reactivado); sin sesión, aviso «INICIA SESIÓN PARA GUARDAR TU PUNTUACIÓN» con enlace a `/acceso`; juegos no `ranked`, aviso «ESTE JUEGO ES UNA DEMO: SU PUNTUACIÓN NO SE GUARDA». Eliminar el campo de nombre libre. Quitar `saveScore`, `SavedScore` y la clave `av_scores` de `lib/session.tsx`. Verificación: jugar `rocas` con sesión guarda la marca y aparece en `/salon`.
@@ -167,7 +168,7 @@ Antes del paso 1, leer en `node_modules/next/dist/docs/` las guías de App Route
 - [ ] `/` y `/biblioteca` muestran los 8 juegos con los mismos títulos, descripciones, categorías y portadas que antes.
 - [ ] Las tarjetas y el detalle de un juego sin partidas guardadas muestran «—» en mejor marca y partidas.
 - [ ] Tras guardar una marca en `rocas`, el detalle y la tarjeta muestran la mejor marca real y el número de partidas correctos.
-- [ ] `/juegos/xyz` y `/juegos/xyz/jugar` devuelven 404.
+- [ ] `/juegos/xyz` y `/juegos/xyz/jugar` muestran la página de no encontrado (título «Juego no encontrado · Arcade Vault» y `noindex`). El código HTTP es 200, igual que en SPEC 04, porque `notFound()` se lanza dentro de `Suspense` con la respuesta ya en streaming; devolver un 404 real queda fuera de este spec.
 - [ ] El código ya no exporta `GAMES` ni usa `seededScores`.
 
 **Guardado de puntuaciones**

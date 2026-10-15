@@ -20,7 +20,12 @@ export function GameCard({ game }: { game: Game }) {
     if (el) el.style.transform = "";
   };
 
-  const btnColor = game.color === "magenta" ? "magenta" : game.color === "yellow" ? "yellow" : "";
+  const btnColor =
+    game.color === "magenta"
+      ? "magenta"
+      : game.color === "yellow"
+        ? "yellow"
+        : "";
 
   return (
     <Link
@@ -40,7 +45,7 @@ export function GameCard({ game }: { game: Game }) {
         <div className="row">
           <div className="score-badge">
             <span>MEJOR PUNTUACIÓN</span>
-            <b>{game.best.toLocaleString("es-ES")}</b>
+            <b>{game.best > 0 ? game.best.toLocaleString("es-ES") : "—"}</b>
           </div>
           <span className={("btn " + btnColor).trim()}>JUGAR</span>
         </div>

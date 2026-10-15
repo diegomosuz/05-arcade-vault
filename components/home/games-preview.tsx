@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { GAMES } from "@/lib/games";
+import type { Game } from "@/lib/games";
 import { Reveal } from "./reveal";
 
-export function GamesPreview() {
+export function GamesPreview({ games }: { games: Game[] }) {
   return (
     <Reveal className="home-section">
       <div className="section-head">
@@ -11,8 +11,13 @@ export function GamesPreview() {
         <div className="section-rule"></div>
       </div>
       <div className="mini-rail">
-        {GAMES.slice(0, 6).map((g) => (
-          <Link key={g.id} href={`/juegos/${g.id}`} className="mini-card" style={{ display: "block" }}>
+        {games.slice(0, 6).map((g) => (
+          <Link
+            key={g.id}
+            href={`/juegos/${g.id}`}
+            className="mini-card"
+            style={{ display: "block" }}
+          >
             <div className="mini-cover">
               <div className={"cover-bg " + g.cover}></div>
             </div>
@@ -24,7 +29,9 @@ export function GamesPreview() {
         ))}
       </div>
       <div style={{ textAlign: "center", marginTop: 24 }}>
-        <Link href="/biblioteca" className="btn lg">VER TODOS LOS JUEGOS →</Link>
+        <Link href="/biblioteca" className="btn lg">
+          VER TODOS LOS JUEGOS →
+        </Link>
       </div>
     </Reveal>
   );
