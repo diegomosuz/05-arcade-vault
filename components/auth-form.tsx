@@ -38,8 +38,12 @@ function authMessage(err: unknown): string {
     case "over_request_rate_limit":
     case "over_email_send_rate_limit":
       return MSG.rate;
+    // El trigger de `profiles` falla (p. ej. username duplicado en una carrera):
+    // Supabase Auth devuelve el código de Postgres (HTTP 500), no un código propio.
+    case "23505": // unique_violation (profiles_username_key)
+    case "23514": // check_violation (profiles_username_check)
+      return MSG.createFailed;
   }
-  // El trigger de `profiles` falla (p. ej. username duplicado en una carrera).
   if (message?.includes("Database error saving new user"))
     return MSG.createFailed;
   return MSG.generic;
