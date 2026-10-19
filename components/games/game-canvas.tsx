@@ -1,46 +1,42 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  createAsteroids,
-  HEIGHT,
-  WIDTH,
-  type AsteroidsGame,
-  type AsteroidsSnapshot,
-} from "@/lib/games/asteroids/engine";
+import type {
+  GameDefinition,
+  GameEngine,
+  GameSnapshot,
+} from "@/lib/games/types";
 
 type Props = {
+  def: GameDefinition;
   paused: boolean;
   runKey: number; // cambia para reiniciar la partida
-  onChange: (s: AsteroidsSnapshot) => void; // solo cuando score, lives, level o status cambian
+  onChange: (s: GameSnapshot) => void; // solo cuando score, status o hud cambian
   onGameOver: (finalScore: number) => void; // una vez por partida
 };
 
-const GAME_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "Space"];
 const MAX_DT = 0.05;
 
-function sameSnapshot(a: AsteroidsSnapshot | null, b: AsteroidsSnapshot) {
-  return (
-    a !== null &&
-    a.score === b.score &&
-    a.lives === b.lives &&
-    a.level === b.level &&
-    a.status === b.status
-  );
+function sameSnapshot(a: GameSnapshot | null, b: GameSnapshot) {
+  if (a === null || a.score !== b.score || a.status !== b.status) return false;
+  const keys = Object.keys(b.hud);
+  if (keys.length !== Object.keys(a.hud).length) return false;
+  return keys.every((k) => a.hud[k] === b.hud[k]);
 }
 
-export function AsteroidsCanvas({
+export function GameCanvas({
+  def,
   paused,
   runKey,
   onChange,
   onGameOver,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<AsteroidsGame | null>(null);
+  const gameRef = useRef<GameEngine | null>(null);
   const pausedRef = useRef(paused);
   const onChangeRef = useRef(onChange);
   const onGameOverRef = useRef(onGameOver);
-  const lastSnapRef = useRef<AsteroidsSnapshot | null>(null);
+  const lastSnapRef = useRef<GameSnapshot | null>(null);
   const gameOverFiredRef = useRef(false);
 
   // Los callbacks y `paused` se leen desde refs para que el bucle y los
@@ -54,7 +50,7 @@ export function AsteroidsCanvas({
   // Partida: se crea (y se recrea al cambiar runKey) dentro de un efecto para
   // que el render inicial no use aleatoriedad.
   useEffect(() => {
-    const game = createAsteroids();
+    const game = def.create();
     gameRef.current = game;
     lastSnapRef.current = null;
     gameOverFiredRef.current = false;
@@ -66,13 +62,13 @@ export function AsteroidsCanvas({
     onChangeRef.current(snap);
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (!GAME_KEYS.includes(e.code)) return;
+      if (!def.keys.includes(e.code)) return;
       if (pausedRef.current) return;
       e.preventDefault();
       game.setKey(e.code, true);
     };
     const onKeyUp = (e: KeyboardEvent) => {
-      if (!GAME_KEYS.includes(e.code)) return;
+      if (!def.keys.includes(e.code)) return;
       game.setKey(e.code, false);
     };
     window.addEventListener("keydown", onKeyDown);
@@ -83,7 +79,7 @@ export function AsteroidsCanvas({
       window.removeEventListener("keyup", onKeyUp);
       gameRef.current = null;
     };
-  }, [runKey]);
+  }, [def, runKey]);
 
   // Bucle: solo corre mientras no está en pausa. Declarado después del efecto
   // de la partida para que `gameRef` ya esté listo cuando cambia runKey.
@@ -91,7 +87,7 @@ export function AsteroidsCanvas({
     const game = gameRef.current;
     if (paused) {
       // Soltar las teclas: un keyup durante la pausa no llega a procesarse.
-      if (game) for (const code of GAME_KEYS) game.setKey(code, false);
+      if (game) for (const code of def.keys) game.setKey(code, false);
       return;
     }
 
@@ -122,16 +118,16 @@ export function AsteroidsCanvas({
     raf = requestAnimationFrame(frame);
 
     return () => cancelAnimationFrame(raf);
-  }, [paused, runKey]);
+  }, [def, paused, runKey]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={WIDTH}
-      height={HEIGHT}
+      width={def.width}
+      height={def.height}
       className="asteroids-canvas"
       role="img"
-      aria-label="Juego Rocas: pilota la nave con las flechas izquierda y derecha, propulsa con la flecha arriba y dispara con la barra espaciadora para destruir los asteroides"
+      aria-label={def.ariaLabel}
     />
   );
 }

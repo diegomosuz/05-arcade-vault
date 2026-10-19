@@ -1,26 +1,11 @@
 // Motor de Asteroides portado de references/started-games/02-asteroids/game.js.
 // No usa window, document ni requestAnimationFrame: el bucle y los listeners
-// viven en components/games/asteroids-canvas.tsx.
+// viven en components/games/game-canvas.tsx.
+
+import type { GameEngine, GameSnapshot, GameStatus } from "../types";
 
 export const WIDTH = 800;
 export const HEIGHT = 600;
-
-export type AsteroidsStatus = "playing" | "dead" | "gameover";
-
-export type AsteroidsSnapshot = {
-  score: number;
-  lives: number;
-  level: number;
-  status: AsteroidsStatus;
-};
-
-export type AsteroidsGame = {
-  update(dt: number): void; // dt en segundos, ya limitado a 0.05
-  draw(ctx: CanvasRenderingContext2D): void;
-  snapshot(): AsteroidsSnapshot;
-  setKey(code: string, down: boolean): void; // ArrowLeft, ArrowRight, ArrowUp, Space
-  reset(): void;
-};
 
 type Keys = Record<string, boolean | undefined>;
 
@@ -331,7 +316,7 @@ class Particle {
 }
 
 // ── Juego ─────────────────────────────────────────────────────────────────────
-export function createAsteroids(): AsteroidsGame {
+export function createAsteroids(): GameEngine {
   const keys: Keys = {};
   const justPressed: Keys = {};
 
@@ -343,7 +328,7 @@ export function createAsteroids(): AsteroidsGame {
   let score: number;
   let lives: number;
   let level: number;
-  let status: AsteroidsStatus;
+  let status: GameStatus;
   let deadTimer = 0;
   let powerUpSpawned: boolean;
   let killsSinceSpawn: number;
@@ -512,8 +497,8 @@ export function createAsteroids(): AsteroidsGame {
     ship.draw(ctx);
   }
 
-  function snapshot(): AsteroidsSnapshot {
-    return { score, lives, level, status };
+  function snapshot(): GameSnapshot {
+    return { score, status, hud: { lives, level } };
   }
 
   reset();
