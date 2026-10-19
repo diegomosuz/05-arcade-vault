@@ -1,6 +1,6 @@
 # SPEC 07 — Juego Tetris con puntuaciones y leaderboard
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 04, SPEC 06
 > **Fecha:** 2026-10-19
 > **Objetivo:** Portar a TypeScript `references/started-games/03-tetris`, jugarlo en `/juegos/caida/jugar` dentro del marco CRT y darlo de alta como juego `ranked` con puntuaciones reales en el Salón de la Fama, introduciendo antes el registro de juegos que SPEC 04 dejó pendiente.
