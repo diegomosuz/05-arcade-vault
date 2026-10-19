@@ -3,11 +3,29 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { submitScore } from "@/app/juegos/[id]/jugar/actions";
-import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
-import type { AsteroidsSnapshot } from "@/lib/games/asteroids/engine";
+import { GameCanvas } from "@/components/games/game-canvas";
+import { GAME_REGISTRY } from "@/lib/games/registry";
+import type { GameDefinition, GameSnapshot } from "@/lib/games/types";
 import { useSession } from "@/lib/session";
 
-type Run = { score: number; level: number };
+type Run = { score: number; hud: Record<string, number> };
+
+const INITIAL_RUN: Run = { score: 0, hud: { lives: 3, level: 1 } };
+
+type HudStat = GameDefinition["hud"][number];
+
+// HUD de las demos: puntuación, vidas y nivel simulados.
+const DEMO_HUD: HudStat[] = [
+  { key: "score", label: "Puntuación", format: "int" },
+  { key: "lives", label: "Vidas", format: "hearts" },
+  { key: "level", label: "Nivel", format: "pad2" },
+];
+
+function formatStat(value: number, format: HudStat["format"]) {
+  if (format === "hearts") return "♥ ".repeat(value).trim() || "—";
+  if (format === "pad2") return String(value).padStart(2, "0");
+  return value.toLocaleString("es-ES");
+}
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
@@ -39,8 +57,7 @@ export function GamePlayer({
   ranked: boolean;
 }) {
   const { user } = useSession();
-  const [run, setRun] = useState<Run>({ score: 0, level: 1 });
-  const [lives, setLives] = useState(3);
+  const [run, setRun] = useState<Run>(INITIAL_RUN);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -56,14 +73,16 @@ export function GamePlayer({
     () => false,
   );
 
-  // Solo «rocas» tiene juego real; el resto sigue con la simulación.
-  const isReal = id === "rocas";
+  // Los juegos del registro son reales; el resto sigue con la simulación.
+  const def = GAME_REGISTRY[id];
+  const isReal = !!def;
   // Con prefers-reduced-motion el juego real espera el primer REANUDAR.
   const awaitStart = isReal && reducedMotion && !started;
   const isPaused = paused || awaitStart;
 
   const name = user?.name ?? "INVITADO";
-  const { score, level } = run;
+  const { score, hud } = run;
+  const stats = def ? def.hud : DEMO_HUD;
 
   // Math.random solo dentro del intervalo (nunca en el render inicial).
   useEffect(() => {
@@ -73,7 +92,10 @@ export function GamePlayer({
         const next = r.score + Math.floor(10 + Math.random() * 90);
         return {
           score: next,
-          level: next % 2500 < 100 ? r.level + 1 : r.level,
+          hud: {
+            ...r.hud,
+            level: next % 2500 < 100 ? r.hud.level + 1 : r.hud.level,
+          },
         };
       });
     }, 220);
@@ -103,8 +125,7 @@ export function GamePlayer({
   useEffect(() => {
     if (!isReal) return;
     return () => {
-      setRun({ score: 0, level: 1 });
-      setLives(3);
+      setRun(INITIAL_RUN);
       setPaused(false);
       setOver(false);
       setSaveState("idle");
@@ -112,9 +133,8 @@ export function GamePlayer({
     };
   }, [isReal]);
 
-  const handleChange = (s: AsteroidsSnapshot) => {
-    setRun({ score: s.score, level: s.level });
-    setLives(s.lives);
+  const handleChange = (s: GameSnapshot) => {
+    setRun({ score: s.score, hud: s.hud });
   };
 
   // Única vía por la que el motor abre el modal de fin de partida.
@@ -125,8 +145,7 @@ export function GamePlayer({
 
   const restart = () => {
     setRunKey((k) => k + 1);
-    setRun({ score: 0, level: 1 });
-    setLives(3);
+    setRun(INITIAL_RUN);
     setPaused(false);
     setOver(false);
     setSaveState("idle");
@@ -157,18 +176,22 @@ export function GamePlayer({
               {name}
             </div>
           </div>
-          <div className="hud-stat">
-            <div className="l">Puntuación</div>
-            <div className="v">{score.toLocaleString("es-ES")}</div>
-          </div>
-          <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
-          </div>
-          <div className="hud-stat level">
-            <div className="l">Nivel</div>
-            <div className="v">{String(level).padStart(2, "0")}</div>
-          </div>
+          {stats.map((stat) => (
+            <div
+              key={stat.key}
+              className={`hud-stat${
+                stat.format === "hearts" ? " lives" : ""
+              }${stat.key === "level" ? " level" : ""}`}
+            >
+              <div className="l">{stat.label}</div>
+              <div className="v">
+                {formatStat(
+                  stat.key === "score" ? score : (hud[stat.key] ?? 0),
+                  stat.format,
+                )}
+              </div>
+            </div>
+          ))}
         </div>
         <div className="hud-actions">
           <button
@@ -194,7 +217,8 @@ export function GamePlayer({
       <div className="crt">
         <div className="crt-screen">
           {isReal ? (
-            <AsteroidsCanvas
+            <GameCanvas
+              def={def}
               paused={isPaused || over}
               runKey={runKey}
               onChange={handleChange}
@@ -238,7 +262,7 @@ export function GamePlayer({
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
           {isReal ? (
-            <span>← → ROTAR · ↑ PROPULSAR · ESPACIO DISPARAR</span>
+            <span>{def.controlsLabel}</span>
           ) : (
             <>
               <span>{title} · CRT-83 · 60 HZ</span>
