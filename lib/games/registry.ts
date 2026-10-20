@@ -4,6 +4,11 @@ import {
   WIDTH,
 } from "./asteroids/engine";
 import {
+  createArkanoid,
+  HEIGHT as ARKANOID_HEIGHT,
+  WIDTH as ARKANOID_WIDTH,
+} from "./arkanoid/engine";
+import {
   createTetris,
   HEIGHT as TETRIS_HEIGHT,
   WIDTH as TETRIS_WIDTH,
@@ -42,5 +47,20 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "level", label: "NIVEL", format: "int" },
     ],
     create: createTetris,
+  },
+  "bloque-buster": {
+    id: "bloque-buster",
+    width: ARKANOID_WIDTH,
+    height: ARKANOID_HEIGHT,
+    keys: ["ArrowLeft", "ArrowRight"],
+    controlsLabel: "← → MOVER LA PALETA",
+    ariaLabel:
+      "Juego Bloque Buster: mueve la paleta con las flechas izquierda y derecha para rebotar la bola y destruir todos los bloques",
+    hud: [
+      { key: "score", label: "Puntuación", format: "int" },
+      { key: "lives", label: "Vidas", format: "hearts" },
+      { key: "level", label: "Nivel", format: "pad2" },
+    ],
+    create: createArkanoid,
   },
 };
