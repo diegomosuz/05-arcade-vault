@@ -1,6 +1,6 @@
 # SPEC 08 — Juego Arkanoid con puntuaciones y leaderboard
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 04, SPEC 06, SPEC 07
 > **Fecha:** 2026-10-20
 > **Objetivo:** Portar a TypeScript el motor de `references/started-games/04-arkanoid` con formas dibujadas en lugar de sprites, jugarlo en `/juegos/bloque-buster/jugar` dentro del marco CRT y darlo de alta como juego `ranked` con puntuaciones reales en el Salón de la Fama.
