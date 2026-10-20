@@ -13,6 +13,11 @@ import {
   HEIGHT as TETRIS_HEIGHT,
   WIDTH as TETRIS_WIDTH,
 } from "./tetris/engine";
+import {
+  createSnake,
+  HEIGHT as SNAKE_HEIGHT,
+  WIDTH as SNAKE_WIDTH,
+} from "./snake/engine";
 import type { GameDefinition } from "./types";
 
 // Un juego es «real» si su id está aquí. Que acepte puntuaciones lo decide
@@ -62,5 +67,30 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "level", label: "Nivel", format: "pad2" },
     ],
     create: createArkanoid,
+  },
+  serpentina: {
+    id: "serpentina",
+    width: SNAKE_WIDTH,
+    height: SNAKE_HEIGHT,
+    keys: [
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "KeyW",
+      "KeyA",
+      "KeyS",
+      "KeyD",
+    ],
+    controlsLabel: "← ↑ ↓ → / WASD MOVER LA SERPIENTE",
+    ariaLabel:
+      "Juego Serpentina: guía la serpiente con las flechas o W A S D para comer frutas sin chocar con las paredes ni con tu propio cuerpo",
+    hud: [
+      { key: "score", label: "PUNTOS", format: "int" },
+      { key: "length", label: "LONGITUD", format: "int" },
+      { key: "level", label: "NIVEL", format: "int" },
+    ],
+    assets: { fruits: "/games/snake/fruits.png" },
+    create: createSnake,
   },
 };
