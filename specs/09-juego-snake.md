@@ -1,6 +1,6 @@
 # SPEC 09 — Juego Serpentina (Snake) con puntuaciones y leaderboard
 
-> **Estado:** Borrador
+> **Estado:** Aprobado
 > **Depende de:** SPEC 04, SPEC 06, SPEC 07
 > **Fecha:** 2026-10-20
 > **Objetivo:** Crear en TypeScript el juego Snake (sin código de referencia, con las frutas de `references/sources-assets/snake-assets`), jugarlo en `/juegos/serpentina/jugar` dentro del marco CRT y darlo de alta como juego `ranked` con puntuaciones reales en el Salón de la Fama.

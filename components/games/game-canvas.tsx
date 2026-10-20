@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type {
+  GameAssets,
   GameDefinition,
   GameEngine,
   GameSnapshot,
@@ -50,33 +51,67 @@ export function GameCanvas({
   // Partida: se crea (y se recrea al cambiar runKey) dentro de un efecto para
   // que el render inicial no use aleatoriedad.
   useEffect(() => {
-    const game = def.create();
-    gameRef.current = game;
+    let cancelled = false;
+    let removeListeners: (() => void) | null = null;
     lastSnapRef.current = null;
     gameOverFiredRef.current = false;
 
-    const ctx = canvasRef.current?.getContext("2d");
-    if (ctx) game.draw(ctx);
-    const snap = game.snapshot();
-    lastSnapRef.current = snap;
-    onChangeRef.current(snap);
+    const start = (assets: GameAssets) => {
+      if (cancelled) return;
+      const game = def.create(assets);
+      gameRef.current = game;
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (!def.keys.includes(e.code)) return;
-      if (pausedRef.current) return;
-      e.preventDefault();
-      game.setKey(e.code, true);
+      const ctx = canvasRef.current?.getContext("2d");
+      if (ctx) game.draw(ctx);
+      const snap = game.snapshot();
+      lastSnapRef.current = snap;
+      onChangeRef.current(snap);
+
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (!def.keys.includes(e.code)) return;
+        if (pausedRef.current) return;
+        e.preventDefault();
+        game.setKey(e.code, true);
+      };
+      const onKeyUp = (e: KeyboardEvent) => {
+        if (!def.keys.includes(e.code)) return;
+        game.setKey(e.code, false);
+      };
+      window.addEventListener("keydown", onKeyDown);
+      window.addEventListener("keyup", onKeyUp);
+      removeListeners = () => {
+        window.removeEventListener("keydown", onKeyDown);
+        window.removeEventListener("keyup", onKeyUp);
+      };
     };
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (!def.keys.includes(e.code)) return;
-      game.setKey(e.code, false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
+
+    if (def.assets) {
+      // Con imágenes, el motor se crea cuando todas terminan de cargar o
+      // fallan; las que fallan se omiten y el motor usa su dibujo de respaldo.
+      Promise.allSettled(
+        Object.entries(def.assets).map(
+          ([name, url]) =>
+            new Promise<[string, HTMLImageElement]>((resolve, reject) => {
+              const img = new Image();
+              img.onload = () => resolve([name, img]);
+              img.onerror = reject;
+              img.src = url;
+            }),
+        ),
+      ).then((results) => {
+        const assets: GameAssets = {};
+        for (const r of results) {
+          if (r.status === "fulfilled") assets[r.value[0]] = r.value[1];
+        }
+        start(assets);
+      });
+    } else {
+      start({});
+    }
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
+      cancelled = true;
+      removeListeners?.();
       gameRef.current = null;
     };
   }, [def, runKey]);

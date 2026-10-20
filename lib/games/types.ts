@@ -14,6 +14,8 @@ export type GameEngine = {
   reset(): void;
 };
 
+export type GameAssets = Record<string, HTMLImageElement>; // solo las que cargaron
+
 export type GameDefinition = {
   id: string; // = games.id
   width: number;
@@ -22,5 +24,6 @@ export type GameDefinition = {
   controlsLabel: string;
   ariaLabel: string;
   hud: { key: string; label: string; format?: "int" | "pad2" | "hearts" }[];
-  create: () => GameEngine;
+  assets?: Record<string, string>; // nombre → URL bajo /public
+  create: (assets: GameAssets) => GameEngine;
 };
