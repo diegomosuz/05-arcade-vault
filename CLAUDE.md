@@ -71,12 +71,7 @@ Los motores de juego son canvas puro (sin librerías de juegos), con una interfa
 
 ### Juegos disponibles
 
-| ID en DB        | Nombre en UI  | Engine    | Controles                                       |
-| --------------- | ------------- | --------- | ----------------------------------------------- |
-| `rocas`         | Rocas         | asteroids | ← → Rotar · ↑ Propulsar · Espacio Disparar      |
-| `caida`         | Caída         | tetris    | ← → Mover · ↑ X Rotar · ↓ Bajar · Espacio Caída |
-| `bloque-buster` | Bloque Buster | arkanoid  | ← → Mover paleta                                |
-| `serpentina`    | Serpentina    | snake     | ← ↑ ↓ → / WASD Mover                            |
+ver: references\implemented-games.md                      |
 
 ## Auth & session
 
