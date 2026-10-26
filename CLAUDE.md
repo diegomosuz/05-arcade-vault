@@ -12,6 +12,10 @@ No test runner is configured.
 
 Usa siempre `/frontend-design` para interfaces gráficas de usuario.
 
+## Agents
+
+- `game-planner` (`.claude/agents/game-planner.md`): planifica y decide qué juego encaja con la plataforma. Mantiene memoria de sugerencias previas en `.claude/agent-memory/game-planner/` (`suggestions.md` + `MEMORY.md`).
+
 ## Specs
 
 Las especificaciones viven en `specs/` y documentan cada fase del proyecto:
@@ -71,7 +75,7 @@ Los motores de juego son canvas puro (sin librerías de juegos), con una interfa
 
 ### Juegos disponibles
 
-ver: references\implemented-games.md                      |
+ver: references\implemented-games.md |
 
 ## Auth & session
 
