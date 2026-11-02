@@ -38,6 +38,18 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "level", label: "Nivel", format: "pad2" },
     ],
     skins: SKIN_IDS,
+    touch: {
+      kind: "split",
+      label: "◀ ▶ ROTAR · ▲ PROPULSAR · ● DISPARAR",
+      left: [
+        { code: "ArrowLeft", label: "◀", ariaLabel: "Rotar a la izquierda" },
+        { code: "ArrowRight", label: "▶", ariaLabel: "Rotar a la derecha" },
+      ],
+      right: [
+        { code: "ArrowUp", label: "▲", ariaLabel: "Propulsar" },
+        { code: "Space", label: "●", ariaLabel: "Disparar" },
+      ],
+    },
     create: createAsteroids,
   },
   caida: {
@@ -54,6 +66,19 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "level", label: "NIVEL", format: "int" },
     ],
     skins: SKIN_IDS,
+    touch: {
+      kind: "split",
+      label: "◀ ▶ MOVER · ▼ BAJAR · ⟳ ROTAR · ⤓ CAÍDA",
+      left: [
+        { code: "ArrowLeft", label: "◀", ariaLabel: "Mover a la izquierda" },
+        { code: "ArrowDown", label: "▼", ariaLabel: "Bajar la pieza" },
+        { code: "ArrowRight", label: "▶", ariaLabel: "Mover a la derecha" },
+      ],
+      right: [
+        { code: "ArrowUp", label: "⟳", ariaLabel: "Rotar la pieza" },
+        { code: "Space", label: "⤓", ariaLabel: "Caída instantánea" },
+      ],
+    },
     create: createTetris,
   },
   "bloque-buster": {
@@ -70,6 +95,26 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "level", label: "Nivel", format: "pad2" },
     ],
     skins: SKIN_IDS,
+    touch: {
+      kind: "split",
+      label: "◀ ▶ MOVER LA PALETA",
+      left: [
+        {
+          code: "ArrowLeft",
+          label: "◀",
+          ariaLabel: "Mover la paleta a la izquierda",
+          wide: true,
+        },
+      ],
+      right: [
+        {
+          code: "ArrowRight",
+          label: "▶",
+          ariaLabel: "Mover la paleta a la derecha",
+          wide: true,
+        },
+      ],
+    },
     create: createArkanoid,
   },
   serpentina: {
@@ -96,6 +141,14 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
     ],
     assets: { fruits: "/games/snake/fruits.png" },
     skins: SKIN_IDS,
+    touch: {
+      kind: "dpad",
+      label: "▲ ▼ ◀ ▶ MOVER LA SERPIENTE",
+      up: { code: "ArrowUp", label: "▲", ariaLabel: "Subir" },
+      down: { code: "ArrowDown", label: "▼", ariaLabel: "Bajar" },
+      left: { code: "ArrowLeft", label: "◀", ariaLabel: "Ir a la izquierda" },
+      right: { code: "ArrowRight", label: "▶", ariaLabel: "Ir a la derecha" },
+    },
     create: createSnake,
   },
 };

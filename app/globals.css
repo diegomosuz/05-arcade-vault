@@ -1368,3 +1368,103 @@ a { color: inherit; text-decoration: none; }
 .term-body .dim { color: var(--ink-dim); }
 .term-body .success { margin-top: 12px; color: var(--green); text-shadow: 0 0 6px rgba(0,255,136,0.45); font-weight: 700; white-space: pre-wrap; }
 .term-body .caret { animation: blink 1s steps(1) infinite; }
+
+/* ===== touch controls (SPEC 10) ===== */
+/* Sin gestos del navegador sobre el juego y el mando. */
+.crt-screen .asteroids-canvas,
+.touch-pad,
+.touch-btn {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Consola bajo el CRT: teclas de goma de la familia de .skin-key. */
+.touch-pad {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+.touch-pad[data-kind="dpad"] { justify-content: center; }
+.touch-side { display: flex; align-items: center; gap: 8px; }
+.touch-pad[data-kind="split"] .touch-side:has(.touch-btn[data-wide]) { flex: 1; }
+
+.touch-btn {
+  --key-led: var(--cyan);
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; min-width: 48px; height: 64px;
+  padding: 0;
+  font-family: var(--mono);
+  color: var(--ink-dim);
+  background: #0c0c12;
+  border: 1px solid #2a2a35;
+  border-bottom-width: 5px;
+  cursor: pointer;
+  transition: color 90ms, border-color 90ms, transform 60ms;
+}
+.touch-btn[data-wide] { flex: 1; width: auto; height: 76px; }
+.touch-glyph { font-size: 24px; line-height: 1; }
+.touch-led {
+  position: absolute; top: 6px; left: 50%;
+  width: 8px; height: 3px;
+  transform: translateX(-50%);
+  background: #2a2a35;
+}
+.touch-btn[data-pressed] {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+  border-bottom-width: 1px;
+  transform: translateY(4px);
+}
+.touch-btn[data-pressed] .touch-led {
+  background: var(--key-led);
+  box-shadow: 0 0 8px var(--key-led);
+}
+
+/* Cruceta (Serpentina) */
+.touch-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(2, 64px);
+  grid-template-areas:
+    ". up ."
+    "left down right";
+  gap: 8px;
+}
+.touch-dpad .touch-btn { width: 100%; height: 100%; }
+.touch-btn[data-area="up"] { grid-area: up; }
+.touch-btn[data-area="down"] { grid-area: down; }
+.touch-btn[data-area="left"] { grid-area: left; }
+.touch-btn[data-area="right"] { grid-area: right; }
+
+@media (prefers-reduced-motion: reduce) {
+  .touch-btn { transition: none; }
+}
+
+/* Móvil estrecho: 360 y 390 px sin solapes ni scroll horizontal. */
+@media (max-width: 400px) {
+  /* nav: el botón de sesión y la hamburguesa no caben en 360–390 px */
+  .av-nav { padding: 12px; gap: 10px; }
+  .av-nav .auth-btn { margin-left: 0; }
+  .av-nav .btn { padding: 10px 12px; letter-spacing: 0.1em; }
+  .av-player { margin: 16px auto; padding: 0 12px 24px; }
+  .player-hud { padding: 10px 12px; gap: 10px; margin-bottom: 12px; }
+  .player-hud .hud-stat .v { font-size: 13px; }
+  .hud-actions { width: 100%; gap: 8px; }
+  .hud-actions .btn { flex: 1; padding: 12px 8px; letter-spacing: 0.1em; }
+  .crt { padding: 10px; border-radius: 20px; }
+  .crt-bottom { margin-top: 10px; padding: 0 2px; letter-spacing: 0.08em; }
+  .touch-pad { margin-top: 18px; padding: 10px; gap: 10px; }
+  .touch-side { gap: 6px; }
+  .touch-btn { width: 52px; height: 60px; }
+  .touch-btn[data-wide] { width: auto; height: 72px; }
+  .touch-dpad { grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(2, 60px); }
+  .modal { padding: 24px 16px; }
+  .modal .final { font-size: 28px; }
+}

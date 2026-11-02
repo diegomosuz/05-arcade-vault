@@ -18,6 +18,24 @@ export type GameEngine = {
 
 export type GameAssets = Record<string, HTMLImageElement>; // solo las que cargaron
 
+export type TouchButton = {
+  code: string; // KeyboardEvent.code; debe estar en def.keys
+  label: string; // glifo visible, p. ej. "◀"
+  ariaLabel: string; // p. ej. "Rotar a la izquierda"
+  wide?: boolean; // botón ancho (Bloque Buster)
+};
+
+export type TouchLayout =
+  | { kind: "split"; label: string; left: TouchButton[]; right: TouchButton[] }
+  | {
+      kind: "dpad";
+      label: string;
+      up: TouchButton;
+      down: TouchButton;
+      left: TouchButton;
+      right: TouchButton;
+    };
+
 export type GameDefinition = {
   id: string; // = games.id
   width: number;
@@ -30,6 +48,7 @@ export type GameDefinition = {
   // Skins visuales disponibles (ver lib/games/skins.ts). Opcional solo mientras
   // se migran los juegos: un juego registrado sin los 3 skins incumple el contrato.
   skins?: readonly SkinId[];
+  touch?: TouchLayout; // label = texto del pie CRT en táctil
   // El motor lee la paleta del skin al crearse; los juegos sin skins lo ignoran.
   create: (assets: GameAssets, skin: SkinId) => GameEngine;
 };

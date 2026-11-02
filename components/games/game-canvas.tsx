@@ -16,6 +16,9 @@ type Props = {
   runKey: number; // cambia para reiniciar la partida
   onChange: (s: GameSnapshot) => void; // solo cuando score, status o hud cambian
   onGameOver: (finalScore: number) => void; // una vez por partida
+  // Entrada alternativa al teclado (mando táctil): se rellena al crear el motor
+  // y vuelve a null al limpiar. Aplica las mismas reglas que los listeners.
+  inputRef?: React.RefObject<((code: string, down: boolean) => void) | null>;
 };
 
 const MAX_DT = 0.05;
@@ -34,6 +37,7 @@ export function GameCanvas({
   runKey,
   onChange,
   onGameOver,
+  inputRef,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<GameEngine | null>(null);
@@ -70,21 +74,28 @@ export function GameCanvas({
       lastSnapRef.current = snap;
       onChangeRef.current(snap);
 
+      // Solo códigos del juego; en pausa se ignoran las pulsaciones pero no
+      // las sueltas. Devuelve si la pulsación se aplicó.
+      const press = (code: string, down: boolean) => {
+        if (!def.keys.includes(code)) return false;
+        if (down && pausedRef.current) return false;
+        game.setKey(code, down);
+        return true;
+      };
+
       const onKeyDown = (e: KeyboardEvent) => {
-        if (!def.keys.includes(e.code)) return;
-        if (pausedRef.current) return;
-        e.preventDefault();
-        game.setKey(e.code, true);
+        if (press(e.code, true)) e.preventDefault();
       };
       const onKeyUp = (e: KeyboardEvent) => {
-        if (!def.keys.includes(e.code)) return;
-        game.setKey(e.code, false);
+        press(e.code, false);
       };
       window.addEventListener("keydown", onKeyDown);
       window.addEventListener("keyup", onKeyUp);
+      if (inputRef) inputRef.current = press;
       removeListeners = () => {
         window.removeEventListener("keydown", onKeyDown);
         window.removeEventListener("keyup", onKeyUp);
+        if (inputRef) inputRef.current = null;
       };
     };
 
@@ -117,7 +128,7 @@ export function GameCanvas({
       removeListeners?.();
       gameRef.current = null;
     };
-  }, [def, runKey, skin]);
+  }, [def, runKey, skin, inputRef]);
 
   // Bucle: solo corre mientras no está en pausa. Declarado después del efecto
   // de la partida para que `gameRef` ya esté listo cuando cambia runKey.
