@@ -1,0 +1,3 @@
+- [Sugerencias](suggestions.md) — tabla de todas las sugerencias con fecha, encaje y estado (fuente de verdad)
+- [Equilibrio del catálogo](project_catalog_balance.md) — categorías/colores 2026-10-26: VERSUS vacía, 2 ARCADE, Invasores top (22/25)
+- Decisiones del usuario: ninguna registrada aún. Descartados: ninguno.

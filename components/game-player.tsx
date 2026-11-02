@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { submitScore } from "@/app/juegos/[id]/jugar/actions";
 import { GameCanvas } from "@/components/games/game-canvas";
+import { SkinSelector, useSkin } from "@/components/games/skin-selector";
 import { GAME_REGISTRY } from "@/lib/games/registry";
+import { DEFAULT_SKIN, type SkinId } from "@/lib/games/skins";
 import type { GameDefinition, GameSnapshot } from "@/lib/games/types";
 import { useSession } from "@/lib/session";
 
@@ -84,6 +86,17 @@ export function GamePlayer({
   const { score, hud } = run;
   const stats = def ? def.hud : DEMO_HUD;
 
+  // Skin visual persistido por juego. Los juegos aún sin skins usan el
+  // por defecto y no muestran selector.
+  const [storedSkin, setStoredSkin] = useSkin(id);
+  const skinOptions = def?.skins ?? [];
+  const skin: SkinId = skinOptions.includes(storedSkin)
+    ? storedSkin
+    : DEFAULT_SKIN;
+  // El motor lee la paleta al crearse, así que cambiar de skin empieza una
+  // partida nueva: se bloquea en cuanto la partida suma puntos para no perderla.
+  const skinLocked = !over && score > 0;
+
   // Math.random solo dentro del intervalo (nunca en el render inicial).
   useEffect(() => {
     if (isReal || over || paused) return;
@@ -149,6 +162,12 @@ export function GamePlayer({
     setPaused(false);
     setOver(false);
     setSaveState("idle");
+  };
+
+  const changeSkin = (next: SkinId) => {
+    if (skinLocked) return;
+    setStoredSkin(next);
+    restart();
   };
 
   const handleSave = async () => {
@@ -219,6 +238,7 @@ export function GamePlayer({
           {isReal ? (
             <GameCanvas
               def={def}
+              skin={skin}
               paused={isPaused || over}
               runKey={runKey}
               onChange={handleChange}
@@ -261,6 +281,14 @@ export function GamePlayer({
         </div>
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
+          {isReal && skinOptions.length > 1 && (
+            <SkinSelector
+              skins={skinOptions}
+              value={skin}
+              locked={skinLocked}
+              onChange={changeSkin}
+            />
+          )}
           {isReal ? (
             <span>{def.controlsLabel}</span>
           ) : (

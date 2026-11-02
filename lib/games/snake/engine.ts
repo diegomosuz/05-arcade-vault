@@ -6,6 +6,8 @@ import type {
   GameSnapshot,
   GameStatus,
 } from "../types";
+import { DEFAULT_SKIN, type SkinId } from "../skins";
+import { SNAKE_SKINS } from "./skins";
 
 export const WIDTH = 800;
 export const HEIGHT = 600;
@@ -24,13 +26,6 @@ const STEP_MIN = 0.06; // se alcanza en el nivel 9
 const MAX_QUEUED_TURNS = 2;
 
 const FRUIT_HEIGHT = 36; // px en pantalla; las frutas miden 160 px de alto en la hoja
-const FRUIT_FALLBACK_COLOR = "#ff4d6d";
-
-const BG_COLOR = "#0a0a12";
-const GRID_COLOR = "rgba(255, 255, 255, 0.04)";
-const BODY_COLOR = "#00ff88";
-const HEAD_COLOR = "#b6ffd9";
-const EYE_COLOR = "#0a0a12";
 
 type Dir = { dx: number; dy: number };
 type Cell = { col: number; row: number };
@@ -77,7 +72,12 @@ function stepInterval(level: number) {
   return Math.max(STEP_MIN, STEP_BASE - (level - 1) * STEP_DECREMENT);
 }
 
-export function createSnake(assets: GameAssets): GameEngine {
+export function createSnake(
+  assets: GameAssets,
+  skin: SkinId = DEFAULT_SKIN,
+): GameEngine {
+  // Solo se lee en draw(): step() no depende del skin.
+  const pal = SNAKE_SKINS[skin] ?? SNAKE_SKINS[DEFAULT_SKIN];
   let snake: Cell[] = [];
   let dir: Dir = { dx: 1, dy: 0 };
   let turns: Dir[] = [];
@@ -161,7 +161,7 @@ export function createSnake(assets: GameAssets): GameEngine {
       const dw = s.w * scale;
       ctx.drawImage(img, s.x, s.y, s.w, s.h, cx - dw / 2, cy - FRUIT_HEIGHT / 2, dw, FRUIT_HEIGHT);
     } else {
-      ctx.fillStyle = FRUIT_FALLBACK_COLOR;
+      ctx.fillStyle = pal.fruitFallback;
       ctx.beginPath();
       ctx.arc(cx, cy, 14, 0, Math.PI * 2);
       ctx.fill();
@@ -171,17 +171,23 @@ export function createSnake(assets: GameAssets): GameEngine {
   function drawSnake(ctx: CanvasRenderingContext2D) {
     for (let i = snake.length - 1; i >= 0; i--) {
       const c = snake[i];
-      ctx.fillStyle = i === 0 ? HEAD_COLOR : BODY_COLOR;
+      const color = i === 0 ? pal.head : pal.body;
+      ctx.fillStyle = color;
+      if (pal.glow) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = pal.glow;
+      }
       ctx.beginPath();
       ctx.roundRect(c.col * CELL + 2, c.row * CELL + 2, CELL - 4, CELL - 4, 8);
       ctx.fill();
     }
+    if (pal.glow) ctx.shadowBlur = 0;
 
     // Ojos: delante de la cabeza, separados en el eje perpendicular al avance.
     const head = snake[0];
     const cx = head.col * CELL + CELL / 2;
     const cy = head.row * CELL + CELL / 2;
-    ctx.fillStyle = EYE_COLOR;
+    ctx.fillStyle = pal.eye;
     for (const side of [-1, 1]) {
       const ex = cx + dir.dx * 8 + -dir.dy * side * 8;
       const ey = cy + dir.dy * 8 + dir.dx * side * 8;
@@ -206,10 +212,10 @@ export function createSnake(assets: GameAssets): GameEngine {
     },
 
     draw(ctx: CanvasRenderingContext2D) {
-      ctx.fillStyle = BG_COLOR;
+      ctx.fillStyle = pal.background;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      ctx.strokeStyle = GRID_COLOR;
+      ctx.strokeStyle = pal.grid;
       ctx.lineWidth = 1;
       ctx.beginPath();
       for (let c = 1; c < COLS; c++) {

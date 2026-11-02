@@ -7,9 +7,11 @@ import type {
   GameEngine,
   GameSnapshot,
 } from "@/lib/games/types";
+import type { SkinId } from "@/lib/games/skins";
 
 type Props = {
   def: GameDefinition;
+  skin: SkinId; // solo visual; cambiarlo recrea el motor (nueva partida)
   paused: boolean;
   runKey: number; // cambia para reiniciar la partida
   onChange: (s: GameSnapshot) => void; // solo cuando score, status o hud cambian
@@ -27,6 +29,7 @@ function sameSnapshot(a: GameSnapshot | null, b: GameSnapshot) {
 
 export function GameCanvas({
   def,
+  skin,
   paused,
   runKey,
   onChange,
@@ -58,7 +61,7 @@ export function GameCanvas({
 
     const start = (assets: GameAssets) => {
       if (cancelled) return;
-      const game = def.create(assets);
+      const game = def.create(assets, skin);
       gameRef.current = game;
 
       const ctx = canvasRef.current?.getContext("2d");
@@ -114,7 +117,7 @@ export function GameCanvas({
       removeListeners?.();
       gameRef.current = null;
     };
-  }, [def, runKey]);
+  }, [def, runKey, skin]);
 
   // Bucle: solo corre mientras no está en pausa. Declarado después del efecto
   // de la partida para que `gameRef` ya esté listo cuando cambia runKey.
@@ -153,7 +156,7 @@ export function GameCanvas({
     raf = requestAnimationFrame(frame);
 
     return () => cancelAnimationFrame(raf);
-  }, [def, paused, runKey]);
+  }, [def, paused, runKey, skin]);
 
   return (
     <canvas

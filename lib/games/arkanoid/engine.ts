@@ -3,6 +3,8 @@
 // bucle y los listeners viven en components/games/game-canvas.tsx.
 
 import type { GameEngine, GameSnapshot, GameStatus } from "../types";
+import { DEFAULT_SKIN, type SkinId } from "../skins";
+import { ARKANOID_SKINS, type ArkanoidBlockColor } from "./skins";
 
 export const WIDTH = 800;
 export const HEIGHT = 600;
@@ -23,14 +25,7 @@ const BASE_BALL_VY = -300;
 const BLOCK_SCORE = 10;
 const INITIAL_LIVES = 3;
 
-type BlockColor =
-  | "red"
-  | "yellow"
-  | "cyan"
-  | "magenta"
-  | "hotpink"
-  | "green"
-  | "gray";
+type BlockColor = ArkanoidBlockColor;
 
 type Block = {
   x: number;
@@ -126,21 +121,14 @@ function buildLevels(): { speed: number; blocks: LevelBlock[] }[] {
 
 const LEVELS = buildLevels();
 
-// Colores fijos por nombre (el canvas no usa sprites); franja superior más clara.
-const BLOCK_FILL: Record<BlockColor, string> = {
-  red: "#ef4444",
-  yellow: "#facc15",
-  cyan: "#22d3ee",
-  magenta: "#d946ef",
-  hotpink: "#ff69b4",
-  green: "#4ade80",
-  gray: "#9ca3af",
-};
-const PADDLE_COLOR = "#e5e7eb";
-const BALL_COLOR = "#ffffff";
 const BLOCK_STRIPE = 3;
 
-export function createArkanoid(): GameEngine {
+export function createArkanoid(
+  _assets: unknown,
+  skin: SkinId = DEFAULT_SKIN,
+): GameEngine {
+  // Solo se lee en draw(): update() no depende del skin.
+  const pal = ARKANOID_SKINS[skin] ?? ARKANOID_SKINS[DEFAULT_SKIN];
   const paddle = { x: 0, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H };
   const ball = {
     x: 0,
@@ -279,21 +267,36 @@ export function createArkanoid(): GameEngine {
       }
     },
     draw(ctx) {
-      ctx.fillStyle = "#000";
+      ctx.fillStyle = pal.background;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
       for (const block of blocks) {
         if (!block.alive) continue;
-        ctx.fillStyle = BLOCK_FILL[block.color];
+        const color = pal.blocks[block.color];
+        ctx.fillStyle = color;
+        if (pal.glow) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = pal.glow;
+        }
         ctx.fillRect(block.x, block.y, block.w, block.h);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+        if (pal.glow) ctx.shadowBlur = 0;
+        ctx.fillStyle = pal.stripe;
         ctx.fillRect(block.x, block.y, block.w, BLOCK_STRIPE);
       }
 
-      ctx.fillStyle = PADDLE_COLOR;
+      if (pal.glow) {
+        ctx.shadowColor = pal.paddle;
+        ctx.shadowBlur = pal.glow;
+      }
+      ctx.fillStyle = pal.paddle;
       ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
-      ctx.fillStyle = BALL_COLOR;
+      if (pal.glow) {
+        ctx.shadowColor = pal.ball;
+        ctx.shadowBlur = pal.glow;
+      }
+      ctx.fillStyle = pal.ball;
       ctx.fillRect(ball.x, ball.y, ball.w, ball.h);
+      if (pal.glow) ctx.shadowBlur = 0;
     },
     setKey(code, down) {
       if (status !== "playing") return;
