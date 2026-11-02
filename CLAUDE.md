@@ -15,6 +15,7 @@ Usa siempre `/frontend-design` para interfaces gráficas de usuario.
 ## Agents
 
 - `game-planner` (`.claude/agents/game-planner.md`): planifica y decide qué juego encaja con la plataforma. Mantiene memoria de sugerencias previas en `.claude/agent-memory/game-planner/` (`suggestions.md` + `MEMORY.md`).
+- `game-jam` (`.claude/agents/game-jam.md`): recibe un tema y crea 3 juegos con 2 specs cada uno en `specs/games-jam/<game-id>/` (`01-motor.md`, `02-plataforma.md`). Solo specs, sin código.
 
 ## Specs
 
