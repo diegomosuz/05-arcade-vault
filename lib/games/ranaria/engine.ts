@@ -7,6 +7,7 @@ import type {
   GameStatus,
 } from "../types";
 import { DEFAULT_SKIN, type SkinId } from "../skins";
+import { createGlowSprite, drawGlowSprite, type GlowSprite } from "../sprites";
 import { RANARIA_SKINS } from "./skins";
 
 const COLS = 16;
@@ -43,6 +44,7 @@ const SCORE_TIME_MULT = 10;
 // Cada boca ocupa 2 columnas; empiezan en estas columnas.
 const GOAL_STARTS = [1, 4, 7, 10, 13];
 const GOAL_WIDTH = 2;
+const GOAL_Y = 18; // y de la casilla de meta dentro de su fila
 
 // Zona de la rana dentro de su celda para los choques con vehículos.
 const FROG_MARGIN = 0.15;
@@ -369,23 +371,68 @@ export function createRanaria(
     ctx.setLineDash([]);
   }
 
+  // Casilla de meta: (x, y) es su esquina superior izquierda.
+  function drawGoalSlot(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    filled: boolean,
+  ) {
+    const w = GOAL_WIDTH * CELL;
+    const h = CELL - GOAL_Y;
+    ctx.fillStyle = pal.goalSlot;
+    ctx.fillRect(x, y, w, h);
+    if (pal.glow) {
+      ctx.shadowColor = pal.goalBorder;
+      ctx.shadowBlur = pal.glow;
+    }
+    ctx.strokeStyle = pal.goalBorder;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    ctx.shadowBlur = 0;
+    if (filled) drawFrogShape(ctx, x + w / 2, y + h / 2, 0, false, 0.7);
+  }
+
+  // Sprites con glow (SPEC 11, ver lib/games/sprites.ts). Las metas y la rana
+  // en reposo están en posiciones enteras y no cambian entre frames, así que se
+  // renderizan una vez. La rana saltando (escala y posición interpoladas) se
+  // sigue dibujando directa: dura ~0,12 s por salto.
+  const goalSprites: (GlowSprite | null | undefined)[] = [];
+  const goalSprite = (filled: boolean): GlowSprite | null => {
+    const key = filled ? 1 : 0;
+    if (goalSprites[key] === undefined) {
+      // La rana de la meta (escala 0,7) sobresale unos px de la casilla.
+      goalSprites[key] = createGlowSprite(
+        GOAL_WIDTH * CELL,
+        CELL - GOAL_Y,
+        pal.glow,
+        (c, pad) => drawGoalSlot(c, pad, pad, filled),
+        8,
+      );
+    }
+    return goalSprites[key] ?? null;
+  };
+  const FROG_BOX = 48;
+  let idleFrogSprite: GlowSprite | null | undefined;
+  const getIdleFrogSprite = (): GlowSprite | null => {
+    if (idleFrogSprite === undefined) {
+      idleFrogSprite = createGlowSprite(FROG_BOX, FROG_BOX, pal.glow, (c, pad) =>
+        drawFrogShape(c, pad + FROG_BOX / 2, pad + FROG_BOX / 2, 0, false, 1),
+      );
+    }
+    return idleFrogSprite;
+  };
+
   function drawGoals(ctx: CanvasRenderingContext2D) {
     GOAL_STARTS.forEach((start, i) => {
       const x = start * CELL;
-      const y = 18;
-      const w = GOAL_WIDTH * CELL;
-      const h = CELL - y;
-      ctx.fillStyle = pal.goalSlot;
-      ctx.fillRect(x, y, w, h);
-      if (pal.glow) {
-        ctx.shadowColor = pal.goalBorder;
-        ctx.shadowBlur = pal.glow;
+      const filled = !!goals[i];
+      const sprite = pal.glow ? goalSprite(filled) : null;
+      if (sprite) {
+        drawGlowSprite(ctx, sprite, x, GOAL_Y);
+      } else {
+        drawGoalSlot(ctx, x, GOAL_Y, filled);
       }
-      ctx.strokeStyle = pal.goalBorder;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-      ctx.shadowBlur = 0;
-      if (goals[i]) drawFrogShape(ctx, x + w / 2, y + h / 2, 0, false, 0.7);
     });
   }
 
@@ -559,6 +606,15 @@ export function createRanaria(
       col += (frog.targetCol - frog.col) * t;
       row += (frog.targetRow - frog.row) * t;
       scale = 1 + 0.2 * Math.sin(Math.PI * t);
+    }
+    const idle = !frog.animating && pal.glow ? getIdleFrogSprite() : null;
+    if (idle) {
+      ctx.save();
+      ctx.translate((col + 0.5) * CELL, row * CELL + CELL / 2);
+      ctx.rotate(FACING_ANGLE[frog.facing]);
+      drawGlowSprite(ctx, idle, -FROG_BOX / 2, -FROG_BOX / 2);
+      ctx.restore();
+      return;
     }
     drawFrogShape(
       ctx,

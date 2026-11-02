@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { submitScore } from "@/app/juegos/[id]/jugar/actions";
 import { GameCanvas } from "@/components/games/game-canvas";
 import { SkinSelector, useSkin } from "@/components/games/skin-selector";
@@ -155,6 +161,17 @@ export function GamePlayer({
     };
   }, [isReal]);
 
+  // SPEC 11: mientras hay un juego real montado se simplifican las capas
+  // decorativas globales (ver `[data-playing="true"]` en globals.css). La
+  // limpieza del efecto cubre tanto el desmontaje como el caso de
+  // cacheComponents, que oculta la página sin desmontarla.
+  useEffect(() => {
+    if (!isReal) return;
+    const root = document.documentElement;
+    root.setAttribute("data-playing", "true");
+    return () => root.removeAttribute("data-playing");
+  }, [isReal]);
+
   // Con cacheComponents Next conserva la página oculta al navegar en vez de
   // desmontarla: al salir se limpian los efectos pero el estado de React
   // sobrevive. Se devuelve al estado inicial para que al volver la partida
@@ -170,29 +187,35 @@ export function GamePlayer({
     };
   }, [isReal]);
 
-  const handleChange = (s: GameSnapshot) => {
+  // SPEC 11: estos callbacks tienen identidad estable (solo usan setters) para
+  // que GameCanvas, TouchControls y SkinSelector, envueltos en memo, no se
+  // re-rendericen con cada cambio de puntuación o HUD.
+  const handleChange = useCallback((s: GameSnapshot) => {
     setRun({ score: s.score, hud: s.hud });
-  };
+  }, []);
 
   // Única vía por la que el motor abre el modal de fin de partida.
-  const handleGameOver = (finalScore: number) => {
+  const handleGameOver = useCallback((finalScore: number) => {
     setRun((r) => ({ ...r, score: finalScore }));
     setOver(true);
-  };
+  }, []);
 
-  const restart = () => {
+  const restart = useCallback(() => {
     setRunKey((k) => k + 1);
     setRun(INITIAL_RUN);
     setPaused(false);
     setOver(false);
     setSaveState("idle");
-  };
+  }, []);
 
-  const changeSkin = (next: SkinId) => {
-    if (skinLocked) return;
-    setStoredSkin(next);
-    restart();
-  };
+  const changeSkin = useCallback(
+    (next: SkinId) => {
+      if (skinLocked) return;
+      setStoredSkin(next);
+      restart();
+    },
+    [skinLocked, setStoredSkin, restart],
+  );
 
   const handleSave = async () => {
     // El estado «saving» deshabilita el botón, pero un doble clic puede llegar antes del render.

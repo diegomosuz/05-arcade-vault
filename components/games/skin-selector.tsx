@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { memo, useCallback, useSyncExternalStore } from "react";
 import { DEFAULT_SKIN, isSkinId, SKINS, type SkinId } from "@/lib/games/skins";
 
 // ── Persistencia ──────────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ export function useSkin(gameId: string): [SkinId, (skin: SkinId) => void] {
 // ── Selector ──────────────────────────────────────────────────────────────────
 // Botonera de «canales» en el bezel del CRT. Botones con aria-pressed (no un
 // radiogroup) porque las flechas pertenecen al juego.
-export function SkinSelector({
+export const SkinSelector = memo(function SkinSelector({
   skins,
   value,
   locked,
@@ -110,4 +110,4 @@ export function SkinSelector({
       )}
     </div>
   );
-}
+});

@@ -4,6 +4,7 @@
 
 import type { GameEngine, GameSnapshot, GameStatus } from "../types";
 import { DEFAULT_SKIN, type SkinId } from "../skins";
+import { createGlowSprite, drawGlowSprite, type GlowSprite } from "../sprites";
 import { TETRIS_SKINS, type TetrisPalette } from "./skins";
 
 export const WIDTH = 800;
@@ -61,6 +62,40 @@ function rotateCW(shape: number[][]): number[][] {
   return result;
 }
 
+// Sprites de bloque con glow (SPEC 11, ver lib/games/sprites.ts): uno por color
+// y paleta, creado la primera vez que se necesita.
+const blockSprites = new WeakMap<TetrisPalette, Map<number, GlowSprite>>();
+
+function blockSprite(
+  colorIndex: number,
+  size: number,
+  pal: TetrisPalette,
+): GlowSprite | null {
+  let bySize = blockSprites.get(pal);
+  if (!bySize) {
+    bySize = new Map();
+    blockSprites.set(pal, bySize);
+  }
+  const key = colorIndex * 1000 + size;
+  let sprite = bySize.get(key);
+  if (!sprite) {
+    const created = createGlowSprite(size, size, pal.glow, (c, pad) => {
+      const color = pal.pieces[colorIndex]!;
+      c.fillStyle = color;
+      c.shadowColor = color;
+      c.shadowBlur = pal.glow;
+      c.fillRect(pad + 1, pad + 1, size - 2, size - 2);
+      c.shadowBlur = 0;
+      c.fillStyle = pal.highlight;
+      c.fillRect(pad + 1, pad + 1, size - 2, 4);
+    });
+    if (!created) return null;
+    sprite = created;
+    bySize.set(key, sprite);
+  }
+  return sprite;
+}
+
 // Dibuja un bloque con su brillo superior; (x, y) en celdas, origen ya trasladado.
 function drawBlock(
   ctx: CanvasRenderingContext2D,
@@ -72,6 +107,17 @@ function drawBlock(
   alpha = 1,
 ) {
   if (!colorIndex) return;
+  // Con alfa < 1 (fantasma, 4 bloques) se dibuja directo: componer sombra y
+  // relleno por separado da un resultado distinto al del sprite aplanado.
+  if (pal.glow && alpha === 1) {
+    const sprite = blockSprite(colorIndex, size, pal);
+    if (sprite) {
+      ctx.globalAlpha = alpha;
+      drawGlowSprite(ctx, sprite, x * size, y * size);
+      ctx.globalAlpha = 1;
+      return;
+    }
+  }
   const color = pal.pieces[colorIndex]!;
   ctx.globalAlpha = alpha;
   ctx.fillStyle = color;
