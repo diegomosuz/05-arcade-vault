@@ -12,7 +12,7 @@ No test runner is configured.
 
 Usa siempre `/frontend-design` para interfaces gráficas de usuario.
 
-Skills del proyecto en `.claude/skills/`: `frontend-design`, `spec`, `spec-impl` (flujo de specs) y `nuevo-juego` (genera `specs/NN-juego-<slug>.md` en estado Borrador a partir de `references/started-games/` o una descripción; la implementación la hace `/spec-impl`). Versiones fijadas en `skills-lock.json`.
+Skills del proyecto en `.claude/skills/`: `frontend-design`, `spec`, `spec-impl` (flujo de specs), `spec-impl-game` (implementa un spec de juego con el flujo de `/spec-impl` y luego lanza en secuencia `skin-designer` → `mobile-porter-agent`) y `nuevo-juego` (genera `specs/NN-juego-<slug>.md` en estado Borrador a partir de `references/started-games/` o una descripción; la implementación la hace `/spec-impl`). Versiones fijadas en `skills-lock.json`.
 
 ## Agents
 
@@ -39,6 +39,7 @@ Las especificaciones viven en `specs/` y documentan cada fase del proyecto:
 | 08  | Juego Arkanoid (Bloque Buster) | Implementado |
 | 09  | Juego Snake (Serpentina)       | Implementado |
 | 10  | Controles táctiles (móvil)     | Implementado |
+| 11  | Rendimiento de los juegos      | Implementado |
 
 Specs de game jam (solo specs, sin código aún) en `specs/games-jam/<game-id>/` (`01-motor.md`, `02-plataforma.md`). Actualmente: `cruce` (Frogger, estado Borrador; sin motor ni fila en `games`).
 
@@ -86,6 +87,7 @@ Los motores de juego son canvas puro (sin librerías de juegos), con una interfa
 - **Controles táctiles** (SPEC 10): `GameDefinition.touch` (`TouchLayout`: `split` o `dpad`) declarado en el registro; `components/games/touch-controls.tsx` renderiza el mando (Pointer Events, multitáctil) y emite los mismos `KeyboardEvent.code` vía `press()` de `GameCanvas`, así que los motores no cambian. Se muestra solo con puntero táctil (`coarse`) en `components/game-player.tsx`.
 - **Componente canvas**: `components/games/game-canvas.tsx` – loop genérico de requestAnimationFrame, input (teclado + `press`), pausa, HUD y submit de score.
 - **Contrato al añadir un juego**: entrada en `GAME_REGISTRY` con `keys`, `controlsLabel`, `ariaLabel`, `hud`, `skins` (3) y `touch`; fila en `games` (migración en `supabase/migrations/`); portada `.cover-*` y entrada en `CoverClass` (`lib/games.ts`).
+- **Rendimiento** (SPEC 11): `lib/games/sprites.ts` (`createGlowSprite`/`drawGlowSprite`) pre-renderiza en un canvas aparte los elementos con glow (`shadowBlur`) de las skins con `glow > 0`; los motores tienen dibujo directo de respaldo. `GameCanvas` usa contexto `alpha: false` (todo motor debe rellenar el fondo en `draw`). `GamePlayer` pone `data-playing="true"` en `<html>` y `globals.css` simplifica las capas decorativas solo en `/jugar`. Medición: `scripts/measure-fps.mjs` contra `next build` + `next start` (nunca `next dev`); resultados en `references/performance-baseline.md`.
 - **Assets estáticos**: `public/games/snake/fruits.png` (sprite atlas de frutas para Serpentina).
 
 ### Juegos disponibles

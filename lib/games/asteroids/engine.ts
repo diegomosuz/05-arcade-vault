@@ -9,6 +9,7 @@ import type {
   GameSnapshot,
   GameStatus,
 } from "../types";
+import { createGlowSprite, drawGlowSprite, type GlowSprite } from "../sprites";
 import { ASTEROIDS_SKINS, type AsteroidsPalette } from "./skins";
 
 export const WIDTH = 800;
@@ -35,11 +36,24 @@ function glow(
   ctx.shadowColor = color;
 }
 
+// Quita en sitio los elementos muertos conservando el orden (SPEC 11): evita
+// crear un array nuevo por frame con .filter().
+function compact<T extends { dead: boolean }>(arr: T[]): T[] {
+  let j = 0;
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+    if (!item.dead) arr[j++] = item;
+  }
+  arr.length = j;
+  return arr;
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const POWERUP_DROP_CHANCE = 0.15;
 const POWERUP_DURATION = 5;
 const POWERUP_TTL = 12;
 const TRIPLE_SPREAD = 0.18;
+const BULLET_RADIUS = 2;
 
 // ── Bullet ────────────────────────────────────────────────────────────────────
 class Bullet {
@@ -48,7 +62,7 @@ class Bullet {
   vx: number;
   vy: number;
   ttl = 1.1;
-  radius = 2;
+  radius = BULLET_RADIUS;
   dead = false;
 
   constructor(x: number, y: number, angle: number) {
@@ -66,7 +80,17 @@ class Bullet {
     if (this.ttl <= 0) this.dead = true;
   }
 
-  draw(ctx: CanvasRenderingContext2D, pal: AsteroidsPalette) {
+  // `sprite`: bala redonda con glow ya renderizada (solo neon); sin ella se
+  // dibuja directa.
+  draw(
+    ctx: CanvasRenderingContext2D,
+    pal: AsteroidsPalette,
+    sprite: GlowSprite | null,
+  ) {
+    if (sprite) {
+      drawGlowSprite(ctx, sprite, this.x - this.radius, this.y - this.radius);
+      return;
+    }
     ctx.fillStyle = pal.bullet;
     glow(ctx, pal, pal.bullet);
     if (pal.bulletShape === "square") {
@@ -356,6 +380,18 @@ export function createAsteroids(
   const pal = ASTEROIDS_SKINS[skin] ?? ASTEROIDS_SKINS[DEFAULT_SKIN];
   const keys: Keys = {};
   const justPressed: Keys = {};
+  // SPEC 11: la bala con glow se renderiza una vez (ver lib/games/sprites.ts).
+  const bulletSprite =
+    pal.glow > 0 && pal.bulletShape !== "square"
+      ? createGlowSprite(BULLET_RADIUS * 2, BULLET_RADIUS * 2, pal.glow, (c, pad) => {
+          c.fillStyle = pal.bullet;
+          c.shadowColor = pal.bullet;
+          c.shadowBlur = pal.glow;
+          c.beginPath();
+          c.arc(pad + BULLET_RADIUS, pad + BULLET_RADIUS, BULLET_RADIUS, 0, Math.PI * 2);
+          c.fill();
+        })
+      : null;
 
   let ship: Ship;
   let bullets: Bullet[];
@@ -445,14 +481,14 @@ export function createAsteroids(
 
     if (status === "gameover") {
       particles.forEach((p) => p.update(dt));
-      particles = particles.filter((p) => !p.dead);
+      compact(particles);
       return;
     }
 
     if (status === "dead") {
       deadTimer -= dt;
       particles.forEach((p) => p.update(dt));
-      particles = particles.filter((p) => !p.dead);
+      compact(particles);
       asteroids.forEach((a) => a.update(dt));
       if (deadTimer <= 0) {
         status = "playing";
@@ -472,9 +508,9 @@ export function createAsteroids(
     particles.forEach((p) => p.update(dt));
     powerUps.forEach((p) => p.update(dt));
 
-    bullets = bullets.filter((b) => !b.dead);
-    particles = particles.filter((p) => !p.dead);
-    powerUps = powerUps.filter((p) => !p.dead);
+    compact(bullets);
+    compact(particles);
+    compact(powerUps);
 
     for (const p of powerUps) {
       if (!p.dead && dist(ship, p) < ship.radius + p.radius) {
@@ -504,9 +540,9 @@ export function createAsteroids(
         }
       }
     }
-    asteroids = asteroids.filter((a) => !a.dead).concat(newAsteroids);
-    bullets = bullets.filter((b) => !b.dead);
-    powerUps = powerUps.filter((p) => !p.dead);
+    compact(asteroids).push(...newAsteroids);
+    compact(bullets);
+    compact(powerUps);
 
     // Nave vs asteroide
     if (ship.invincible <= 0) {
@@ -530,7 +566,7 @@ export function createAsteroids(
     particles.forEach((p) => p.draw(ctx, pal));
     asteroids.forEach((a) => a.draw(ctx, pal));
     powerUps.forEach((p) => p.draw(ctx, clock, pal));
-    bullets.forEach((b) => b.draw(ctx, pal));
+    bullets.forEach((b) => b.draw(ctx, pal, bulletSprite));
     ship.draw(ctx, pal);
     // Las balas dibujan fuera de save/restore: no dejar el glow para el
     // siguiente frame (el fondo se pintaría con sombra).

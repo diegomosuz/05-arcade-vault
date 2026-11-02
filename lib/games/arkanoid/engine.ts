@@ -4,6 +4,7 @@
 
 import type { GameEngine, GameSnapshot, GameStatus } from "../types";
 import { DEFAULT_SKIN, type SkinId } from "../skins";
+import { createGlowSprite, drawGlowSprite, type GlowSprite } from "../sprites";
 import { ARKANOID_SKINS, type ArkanoidBlockColor } from "./skins";
 
 export const WIDTH = 800;
@@ -138,6 +139,38 @@ export function createArkanoid(
     vx: BASE_BALL_VX,
     vy: BASE_BALL_VY,
   };
+  // Sprites con glow (SPEC 11, ver lib/games/sprites.ts): un bloque por color,
+  // la paleta y la bola. Sin glow (classic/retro) no se crea ninguno.
+  const blockSprites = new Map<BlockColor, GlowSprite>();
+  const blockSprite = (color: BlockColor): GlowSprite | null => {
+    let sprite = blockSprites.get(color);
+    if (!sprite) {
+      const created = createGlowSprite(BLOCK_W, BLOCK_H, pal.glow, (c, pad) => {
+        c.fillStyle = pal.blocks[color];
+        c.shadowColor = pal.blocks[color];
+        c.shadowBlur = pal.glow;
+        c.fillRect(pad, pad, BLOCK_W, BLOCK_H);
+        c.shadowBlur = 0;
+        c.fillStyle = pal.stripe;
+        c.fillRect(pad, pad, BLOCK_W, BLOCK_STRIPE);
+      });
+      if (!created) return null;
+      sprite = created;
+      blockSprites.set(color, sprite);
+    }
+    return sprite;
+  };
+  const glowRect = (w: number, h: number, color: string) =>
+    pal.glow
+      ? createGlowSprite(w, h, pal.glow, (c, pad) => {
+          c.fillStyle = color;
+          c.shadowColor = color;
+          c.shadowBlur = pal.glow;
+          c.fillRect(pad, pad, w, h);
+        })
+      : null;
+  const paddleSprite = glowRect(PADDLE_W, PADDLE_H, pal.paddle);
+  const ballSprite = glowRect(BALL_SIZE, BALL_SIZE, pal.ball);
   let blocks: Block[];
   let score: number;
   let lives: number;
@@ -272,31 +305,26 @@ export function createArkanoid(
 
       for (const block of blocks) {
         if (!block.alive) continue;
-        const color = pal.blocks[block.color];
-        ctx.fillStyle = color;
-        if (pal.glow) {
-          ctx.shadowColor = color;
-          ctx.shadowBlur = pal.glow;
+        const sprite = pal.glow ? blockSprite(block.color) : null;
+        if (sprite) {
+          drawGlowSprite(ctx, sprite, block.x, block.y);
+          continue;
         }
+        ctx.fillStyle = pal.blocks[block.color];
         ctx.fillRect(block.x, block.y, block.w, block.h);
-        if (pal.glow) ctx.shadowBlur = 0;
         ctx.fillStyle = pal.stripe;
         ctx.fillRect(block.x, block.y, block.w, BLOCK_STRIPE);
       }
 
-      if (pal.glow) {
-        ctx.shadowColor = pal.paddle;
-        ctx.shadowBlur = pal.glow;
+      if (paddleSprite && ballSprite) {
+        drawGlowSprite(ctx, paddleSprite, paddle.x, paddle.y);
+        drawGlowSprite(ctx, ballSprite, ball.x, ball.y);
+        return;
       }
       ctx.fillStyle = pal.paddle;
       ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
-      if (pal.glow) {
-        ctx.shadowColor = pal.ball;
-        ctx.shadowBlur = pal.glow;
-      }
       ctx.fillStyle = pal.ball;
       ctx.fillRect(ball.x, ball.y, ball.w, ball.h);
-      if (pal.glow) ctx.shadowBlur = 0;
     },
     setKey(code, down) {
       if (status !== "playing") return;

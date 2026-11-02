@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import type {
   GameAssets,
   GameDefinition,
@@ -30,7 +30,9 @@ function sameSnapshot(a: GameSnapshot | null, b: GameSnapshot) {
   return keys.every((k) => a.hud[k] === b.hud[k]);
 }
 
-export function GameCanvas({
+// memo: el padre se re-renderiza con cada cambio de puntuación/HUD, pero el
+// canvas lo pinta el bucle de rAF y no necesita volver a renderizarse.
+export const GameCanvas = memo(function GameCanvas({
   def,
   skin,
   paused,
@@ -41,6 +43,8 @@ export function GameCanvas({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<GameEngine | null>(null);
+  // Contexto 2D opaco, obtenido una sola vez al crear el motor (no por frame).
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const pausedRef = useRef(paused);
   const onChangeRef = useRef(onChange);
   const onGameOverRef = useRef(onGameOver);
@@ -68,7 +72,10 @@ export function GameCanvas({
       const game = def.create(assets, skin);
       gameRef.current = game;
 
-      const ctx = canvasRef.current?.getContext("2d");
+      // `alpha: false`: todos los motores rellenan el fondo en cada draw, así
+      // que el navegador puede tratar el canvas como opaco (sin mezclarlo).
+      const ctx = canvasRef.current?.getContext("2d", { alpha: false }) ?? null;
+      ctxRef.current = ctx;
       if (ctx) game.draw(ctx);
       const snap = game.snapshot();
       lastSnapRef.current = snap;
@@ -127,6 +134,7 @@ export function GameCanvas({
       cancelled = true;
       removeListeners?.();
       gameRef.current = null;
+      ctxRef.current = null;
     };
   }, [def, runKey, skin, inputRef]);
 
@@ -145,7 +153,7 @@ export function GameCanvas({
 
     const frame = (ts: number) => {
       const g = gameRef.current;
-      const ctx = canvasRef.current?.getContext("2d");
+      const ctx = ctxRef.current;
       if (g && ctx) {
         const dt = last === null ? 0 : Math.min((ts - last) / 1000, MAX_DT);
         last = ts;
@@ -179,4 +187,4 @@ export function GameCanvas({
       aria-label={def.ariaLabel}
     />
   );
-}
+});

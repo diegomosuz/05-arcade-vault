@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import type { TouchButton, TouchLayout } from "@/lib/games/types";
 
 type Props = {
@@ -24,7 +24,11 @@ function vibrate() {
 // Mando virtual: cada botón emite el mismo KeyboardEvent.code que el teclado a
 // través de `inputRef`. El estado se lleva por pointerId para que soltar un dedo
 // no libere la tecla que mantiene otro.
-export function TouchControls({ layout, inputRef, paused }: Props) {
+export const TouchControls = memo(function TouchControls({
+  layout,
+  inputRef,
+  paused,
+}: Props) {
   // pointerId → code que mantiene. Es la fuente de verdad de lo pulsado.
   const activeRef = useRef(new Map<number, string>());
   const [pressed, setPressed] = useState<ReadonlySet<string>>(new Set());
@@ -128,4 +132,4 @@ export function TouchControls({ layout, inputRef, paused }: Props) {
       )}
     </div>
   );
-}
+});

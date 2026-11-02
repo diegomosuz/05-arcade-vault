@@ -7,6 +7,7 @@ import type {
   GameStatus,
 } from "../types";
 import { DEFAULT_SKIN, type SkinId } from "../skins";
+import { createGlowSprite, drawGlowSprite, type GlowSprite } from "../sprites";
 import { SNAKE_SKINS } from "./skins";
 
 export const WIDTH = 800;
@@ -168,20 +169,35 @@ export function createSnake(
     }
   }
 
+  // Segmentos con glow (SPEC 11, ver lib/games/sprites.ts): cabeza y cuerpo se
+  // renderizan una vez y se copian en cada frame.
+  const makeSegment = (color: string): GlowSprite | null =>
+    pal.glow
+      ? createGlowSprite(CELL, CELL, pal.glow, (c, pad) => {
+          c.fillStyle = color;
+          c.shadowColor = color;
+          c.shadowBlur = pal.glow;
+          c.beginPath();
+          c.roundRect(pad + 2, pad + 2, CELL - 4, CELL - 4, 8);
+          c.fill();
+        })
+      : null;
+  const headSprite = makeSegment(pal.head);
+  const bodySprite = makeSegment(pal.body);
+
   function drawSnake(ctx: CanvasRenderingContext2D) {
     for (let i = snake.length - 1; i >= 0; i--) {
       const c = snake[i];
-      const color = i === 0 ? pal.head : pal.body;
-      ctx.fillStyle = color;
-      if (pal.glow) {
-        ctx.shadowColor = color;
-        ctx.shadowBlur = pal.glow;
+      const sprite = i === 0 ? headSprite : bodySprite;
+      if (sprite) {
+        drawGlowSprite(ctx, sprite, c.col * CELL, c.row * CELL);
+        continue;
       }
+      ctx.fillStyle = i === 0 ? pal.head : pal.body;
       ctx.beginPath();
       ctx.roundRect(c.col * CELL + 2, c.row * CELL + 2, CELL - 4, CELL - 4, 8);
       ctx.fill();
     }
-    if (pal.glow) ctx.shadowBlur = 0;
 
     // Ojos: delante de la cabeza, separados en el eje perpendicular al avance.
     const head = snake[0];
