@@ -1,6 +1,8 @@
 # Juegos implementados en Arcade Vault
 
-> Consultado desde la base de datos de Supabase el 2026-10-21.
+> Consultado desde la base de datos de Supabase el 2026-11-02.
+
+Todos los juegos implementados tienen 3 skins (`classic`, `neon`, `retro`) y controles táctiles (SPEC 10).
 
 ## Resumen
 
@@ -26,7 +28,7 @@ Estos juegos tienen motor de juego funcional en `lib/games/` y están registrado
 | **Ranked**    | Si                                                 |
 | **Max score** | 2,080                                              |
 | **Color**     | cyan                                               |
-| **Controles** | ← → Mover paleta                                  |
+| **Controles** | ← → Mover paleta · táctil: ◀ ▶                     |
 | **Descripción** | Rebota la pelota y destruye muros de neón. Pilota una nave-paleta y rebota un núcleo de plasma para pulverizar muros de bloques cromáticos. |
 
 ### 2. Caída
@@ -39,7 +41,7 @@ Estos juegos tienen motor de juego funcional en `lib/games/` y están registrado
 | **Ranked**    | Si                                                 |
 | **Max score** | 500,000                                            |
 | **Color**     | magenta                                            |
-| **Controles** | ← → Mover · ↑ X Rotar · ↓ Bajar · Espacio Caída  |
+| **Controles** | ← → Mover · ↑ X Rotar · ↓ Bajar · Espacio Caída · táctil: ◀ ▼ ▶ ⟳ ⤓ |
 | **Descripción** | Encaja las piezas antes de que el techo te aplaste. Piezas geométricas descienden desde la oscuridad. |
 
 ### 3. Serpentina
@@ -52,7 +54,7 @@ Estos juegos tienen motor de juego funcional en `lib/games/` y están registrado
 | **Ranked**    | Si                                                 |
 | **Max score** | 2,970                                              |
 | **Color**     | green                                              |
-| **Controles** | ← ↑ ↓ → / WASD Mover                              |
+| **Controles** | ← ↑ ↓ → / WASD Mover · táctil: cruceta ▲ ▼ ◀ ▶     |
 | **Assets**    | `public/games/snake/fruits.png`                    |
 | **Descripción** | Crece sin morder tu propia cola. Una serpiente de luz recorre la grilla buscando núcleos magenta. |
 
@@ -66,7 +68,7 @@ Estos juegos tienen motor de juego funcional en `lib/games/` y están registrado
 | **Ranked**    | Si                                                 |
 | **Max score** | 1,000,000                                          |
 | **Color**     | yellow                                             |
-| **Controles** | ← → Rotar · ↑ Propulsar · Espacio Disparar        |
+| **Controles** | ← → Rotar · ↑ Propulsar · Espacio Disparar · táctil: ◀ ▶ ▲ ●  |
 | **Descripción** | Pulveriza asteroides en gravedad cero. Tu nave triangular flota en vacío absoluto. |
 
 ---
@@ -119,5 +121,11 @@ Estos juegos existen en la base de datos pero aún no tienen motor implementado.
 | ------------- | ----------------:| ----------------:|
 | Bloque Buster | 10               | 1                |
 | Rocas         | 2,400            | 1                |
+| Serpentina    | 240              | 1                |
 | Caída         | —                | —                |
-| Serpentina    | —                | —                |
+
+---
+
+## En specs (sin implementar)
+
+- **Cruce** (Frogger, game jam): `specs/games-jam/cruce/`, estado Borrador. Aún no tiene motor ni fila en `games`.
