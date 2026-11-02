@@ -1468,3 +1468,20 @@ a { color: inherit; text-decoration: none; }
   .modal { padding: 24px 16px; }
   .modal .final { font-size: 28px; }
 }
+
+/* Pantalla del juego real con su propia relación de aspecto (Ranaria 8:7).
+   En escritorio el CRT sigue en 4:3 y el canvas se encaja sin deformarse
+   (los juegos 800x600 no cambian). */
+.touch-screen .asteroids-canvas { object-fit: contain; }
+
+/* Táctil o estrecho: la pantalla adopta la relación del canvas para no
+   desperdiciar ancho con bandas negras. */
+@media (pointer: coarse), (max-width: 760px) {
+  .touch-screen { aspect-ratio: var(--touch-screen-ratio, 4 / 3); }
+}
+
+/* Móvil estrecho: radio menor para no recortar el HUD dibujado en las
+   esquinas del canvas. */
+@media (max-width: 400px) {
+  .touch-screen { border-radius: 8px / 14px; }
+}

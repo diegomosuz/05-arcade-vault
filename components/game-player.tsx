@@ -258,7 +258,18 @@ export function GamePlayer({
       </div>
 
       <div className="crt">
-        <div className="crt-screen">
+        <div
+          className={isReal ? "crt-screen touch-screen" : "crt-screen"}
+          // Relación real del canvas del juego (p. ej. 640/560 en Ranaria);
+          // en escritorio la pantalla sigue en 4:3 y el canvas se encaja.
+          style={
+            isReal
+              ? ({
+                  "--touch-screen-ratio": `${def.width} / ${def.height}`,
+                } as React.CSSProperties)
+              : undefined
+          }
+        >
           {isReal ? (
             <GameCanvas
               def={def}

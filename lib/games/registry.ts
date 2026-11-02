@@ -18,6 +18,11 @@ import {
   HEIGHT as SNAKE_HEIGHT,
   WIDTH as SNAKE_WIDTH,
 } from "./snake/engine";
+import {
+  createRanaria,
+  HEIGHT as RANARIA_HEIGHT,
+  WIDTH as RANARIA_WIDTH,
+} from "./ranaria/engine";
 import { SKIN_IDS } from "./skins";
 import type { GameDefinition } from "./types";
 
@@ -150,5 +155,46 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       right: { code: "ArrowRight", label: "▶", ariaLabel: "Ir a la derecha" },
     },
     create: createSnake,
+  },
+  ranaria: {
+    id: "ranaria",
+    width: RANARIA_WIDTH,
+    height: RANARIA_HEIGHT,
+    keys: [
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "KeyW",
+      "KeyA",
+      "KeyS",
+      "KeyD",
+    ],
+    controlsLabel: "← ↑ ↓ → / WASD SALTAR",
+    ariaLabel:
+      "Juego Ranaria: guía la rana con las flechas o W A S D para cruzar la carretera y el río y llegar a las cinco bocas del otro lado",
+    hud: [
+      { key: "score", label: "PUNTOS", format: "int" },
+      { key: "lives", label: "VIDAS", format: "hearts" },
+      { key: "level", label: "NIVEL", format: "pad2" },
+    ],
+    skins: SKIN_IDS,
+    touch: {
+      kind: "dpad",
+      label: "▲ ▼ ◀ ▶ SALTAR",
+      up: { code: "ArrowUp", label: "▲", ariaLabel: "Saltar hacia arriba" },
+      down: { code: "ArrowDown", label: "▼", ariaLabel: "Saltar hacia abajo" },
+      left: {
+        code: "ArrowLeft",
+        label: "◀",
+        ariaLabel: "Saltar a la izquierda",
+      },
+      right: {
+        code: "ArrowRight",
+        label: "▶",
+        ariaLabel: "Saltar a la derecha",
+      },
+    },
+    create: createRanaria,
   },
 };

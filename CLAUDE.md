@@ -12,7 +12,7 @@ No test runner is configured.
 
 Usa siempre `/frontend-design` para interfaces gráficas de usuario.
 
-Skills del proyecto en `.claude/skills/`: `frontend-design`, `spec`, `spec-impl` (flujo de specs) y `nuevo-juego` (genera `specs/NN-juego-<slug>.md` en estado Borrador a partir de `references/started-games/` o una descripción; la implementación la hace `/spec-impl`). Versiones fijadas en `skills-lock.json`.
+Skills del proyecto en `.claude/skills/`: `frontend-design`, `spec`, `spec-impl` (flujo de specs), `spec-impl-game` (implementa un spec de juego con el flujo de `/spec-impl` y luego lanza en secuencia `skin-designer` → `mobile-porter-agent`) y `nuevo-juego` (genera `specs/NN-juego-<slug>.md` en estado Borrador a partir de `references/started-games/` o una descripción; la implementación la hace `/spec-impl`). Versiones fijadas en `skills-lock.json`.
 
 ## Agents
 
