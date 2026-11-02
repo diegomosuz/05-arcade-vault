@@ -1,3 +1,5 @@
+import type { SkinId } from "./skins";
+
 export type GameStatus = "playing" | "dead" | "gameover";
 
 export type GameSnapshot = {
@@ -25,5 +27,9 @@ export type GameDefinition = {
   ariaLabel: string;
   hud: { key: string; label: string; format?: "int" | "pad2" | "hearts" }[];
   assets?: Record<string, string>; // nombre → URL bajo /public
-  create: (assets: GameAssets) => GameEngine;
+  // Skins visuales disponibles (ver lib/games/skins.ts). Opcional solo mientras
+  // se migran los juegos: un juego registrado sin los 3 skins incumple el contrato.
+  skins?: readonly SkinId[];
+  // El motor lee la paleta del skin al crearse; los juegos sin skins lo ignoran.
+  create: (assets: GameAssets, skin: SkinId) => GameEngine;
 };

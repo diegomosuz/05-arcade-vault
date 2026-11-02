@@ -18,6 +18,7 @@ import {
   HEIGHT as SNAKE_HEIGHT,
   WIDTH as SNAKE_WIDTH,
 } from "./snake/engine";
+import { SKIN_IDS } from "./skins";
 import type { GameDefinition } from "./types";
 
 // Un juego es «real» si su id está aquí. Que acepte puntuaciones lo decide
@@ -36,6 +37,7 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "lives", label: "Vidas", format: "hearts" },
       { key: "level", label: "Nivel", format: "pad2" },
     ],
+    skins: SKIN_IDS,
     create: createAsteroids,
   },
   caida: {
