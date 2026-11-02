@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { submitScore } from "@/app/juegos/[id]/jugar/actions";
 import { GameCanvas } from "@/components/games/game-canvas";
 import { SkinSelector, useSkin } from "@/components/games/skin-selector";
+import { TouchControls } from "@/components/games/touch-controls";
 import { GAME_REGISTRY } from "@/lib/games/registry";
 import { DEFAULT_SKIN, type SkinId } from "@/lib/games/skins";
 import type { GameDefinition, GameSnapshot } from "@/lib/games/types";
@@ -35,6 +36,24 @@ function subscribeReducedMotion(cb: () => void) {
   const mq = window.matchMedia(REDUCED_MOTION);
   mq.addEventListener("change", cb);
   return () => mq.removeEventListener("change", cb);
+}
+
+const COARSE_POINTER = "(pointer: coarse)";
+
+function subscribeCoarsePointer(cb: () => void) {
+  const mq = window.matchMedia(COARSE_POINTER);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+
+// Puntero principal táctil (móvil/tablet). false en servidor y en la
+// hidratación; el valor real llega tras el montaje.
+function useCoarsePointer() {
+  return useSyncExternalStore(
+    subscribeCoarsePointer,
+    () => window.matchMedia(COARSE_POINTER).matches,
+    () => false,
+  );
 }
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -74,6 +93,9 @@ export function GamePlayer({
     () => window.matchMedia(REDUCED_MOTION).matches,
     () => false,
   );
+  const coarse = useCoarsePointer();
+  // Entrada del motor real; GameCanvas la rellena y TouchControls la usa.
+  const inputRef = useRef<((code: string, down: boolean) => void) | null>(null);
 
   // Los juegos del registro son reales; el resto sigue con la simulación.
   const def = GAME_REGISTRY[id];
@@ -81,6 +103,8 @@ export function GamePlayer({
   // Con prefers-reduced-motion el juego real espera el primer REANUDAR.
   const awaitStart = isReal && reducedMotion && !started;
   const isPaused = paused || awaitStart;
+  // Mando solo en juegos reales que lo declaran y con puntero táctil.
+  const touchLayout = isReal && coarse ? def.touch : undefined;
 
   const name = user?.name ?? "INVITADO";
   const { score, hud } = run;
@@ -243,6 +267,7 @@ export function GamePlayer({
               runKey={runKey}
               onChange={handleChange}
               onGameOver={handleGameOver}
+              inputRef={inputRef}
             />
           ) : (
             <div className="game-arena">
@@ -290,7 +315,7 @@ export function GamePlayer({
             />
           )}
           {isReal ? (
-            <span>{def.controlsLabel}</span>
+            <span>{touchLayout ? touchLayout.label : def.controlsLabel}</span>
           ) : (
             <>
               <span>{title} · CRT-83 · 60 HZ</span>
@@ -299,6 +324,14 @@ export function GamePlayer({
           )}
         </div>
       </div>
+
+      {touchLayout && (
+        <TouchControls
+          layout={touchLayout}
+          inputRef={inputRef}
+          paused={isPaused || over}
+        />
+      )}
 
       {over && (
         <div className="modal-bd">
