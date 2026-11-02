@@ -17,6 +17,7 @@ Usa siempre `/frontend-design` para interfaces gráficas de usuario.
 - `game-planner` (`.claude/agents/game-planner.md`): planifica y decide qué juego encaja con la plataforma. Mantiene memoria de sugerencias previas en `.claude/agent-memory/game-planner/` (`suggestions.md` + `MEMORY.md`).
 - `game-jam` (`.claude/agents/game-jam.md`): recibe un tema y crea 3 juegos con 2 specs cada uno en `specs/games-jam/<game-id>/` (`01-motor.md`, `02-plataforma.md`). Solo specs, sin código.
 - `skin-designer` (`.claude/agents/skin-designer.md`): revisa que todo juego tenga al menos 3 skins (classic por defecto, neon y retro), los implementa en los motores (`lib/games/<juego>/skins.ts`) y verifica que se vean bien en modo oscuro.
+- `mobile-porter-agent` (`.claude/agents/mobile-porter-agent.md`): audita y corrige la experiencia móvil/responsive de todo el sitio y verifica que cada juego cumpla el contrato táctil de la SPEC 10 (`specs/10-controles-tactiles-movil.md`).
 
 ## Specs
 
