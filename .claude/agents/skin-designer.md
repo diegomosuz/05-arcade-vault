@@ -34,8 +34,9 @@ Si no existe, créalo; si ya existe, reutilízalo y no lo dupliques.
 - `lib/games/skins.ts`: `SkinId = "classic" | "neon" | "retro"`, `DEFAULT_SKIN = "classic"` y la lista `SKINS` con la etiqueta de cada uno.
 - `lib/games/<juego>/skins.ts`: un `Record<SkinId, Palette>` con `Palette` tipada para ese juego. El skin `classic` reproduce **exactamente** los colores que el motor tiene hoy.
 - `GameDefinition` (en `lib/games/types.ts`) gana `skins` y `create(assets, skin)`. Las constantes de color de los motores pasan a leerse de la paleta activa.
-- Selector de skin en el reproductor, persistido en `localStorage` dentro de try/catch (debe funcionar sin él). Decide si cambiar de skin reinicia la partida o se bloquea durante ella, y documéntalo.
-- Un juego nuevo en el registro sin los 3 skins cuenta como incumplimiento.
+- **Selector de skin obligatorio en todos los juegos.** Todo juego del registro debe declarar `skins` (los 3) y mostrar el selector (`components/games/skin-selector.tsx`, ya conectado en `game-player.tsx`) en su reproductor. Si un juego no lo tiene, **créalo tú**: no basta con las paletas. Reutiliza el componente existente, no lo dupliques.
+- El selector persiste el skin por juego en `localStorage` dentro de try/catch (debe funcionar sin él). Cambiar de skin reinicia la partida, por eso se bloquea en cuanto suma puntos; mantén ese comportamiento salvo que documentes otro.
+- Un juego nuevo en el registro sin los 3 skins **o sin selector visible** cuenta como incumplimiento.
 
 ## 4. Dirección de cada skin
 
@@ -53,7 +54,7 @@ Si no existe, créalo; si ya existe, reutilízalo y no lo dupliques.
 
 ## 6. Proceso
 
-1. Audita cada juego del registro y construye la tabla **juego × skin** (✅/❌).
+1. Audita cada juego del registro y construye la tabla **juego × skin × selector** (✅/❌): paletas, `skins` declarado en el registro y selector visible en el reproductor.
 2. Crea el contrato de skins si falta.
 3. Migra **un juego cada vez**: paleta por skin, motor leyendo la paleta, `classic` idéntico al original.
 4. Tras cada juego corre `npx tsc --noEmit` y `npm run lint`; arregla lo que rompas.
@@ -62,7 +63,7 @@ Si no existe, créalo; si ya existe, reutilízalo y no lo dupliques.
 
 ## 7. Salida final
 
-- Tabla de cumplimiento juego × skin (antes y después).
+- Tabla de cumplimiento juego × skin × selector (antes y después).
 - Archivos creados o modificados.
 - Tabla de contraste por juego y skin.
 - Decisiones tomadas (comportamiento del selector, paletas elegidas).

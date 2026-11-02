@@ -3,6 +3,8 @@
 // viven en components/games/game-canvas.tsx.
 
 import type { GameEngine, GameSnapshot, GameStatus } from "../types";
+import { DEFAULT_SKIN, type SkinId } from "../skins";
+import { TETRIS_SKINS, type TetrisPalette } from "./skins";
 
 export const WIDTH = 800;
 export const HEIGHT = 600;
@@ -14,24 +16,7 @@ const BOARD_X = 250; // (800 - 300) / 2; el tablero ocupa x 250–550, y 0–600
 const NEXT_X = 580; // panel «NEXT» de 120×120, a la derecha del tablero
 const NEXT_Y = 40;
 
-// Valores del tema oscuro de style.css (el canvas no lee CSS del documento).
-const BG_COLOR = "#0f0f17";
-const PANEL_COLOR = "#1a1a25";
-const BORDER_COLOR = "#2a2a3a";
-const GRID_COLOR = "#22222e";
-
 const LINE_SCORES = [0, 100, 300, 500, 800];
-const COLORS = [
-  null,
-  "#4dd0e1", // I - cyan
-  "#ffd54f", // O - yellow
-  "#ba68c8", // T - purple
-  "#81c784", // S - green
-  "#e57373", // Z - red
-  "#90caf9", // J - pale blue
-  "#ffb74d", // L - orange
-  "#9e9e9e", // N - tuerca (gris metálico)
-];
 const PIECES: (number[][] | null)[] = [
   null,
   [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], // I
@@ -83,13 +68,20 @@ function drawBlock(
   y: number,
   colorIndex: number,
   size: number,
+  pal: TetrisPalette,
   alpha = 1,
 ) {
   if (!colorIndex) return;
+  const color = pal.pieces[colorIndex]!;
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = COLORS[colorIndex]!;
+  ctx.fillStyle = color;
+  if (pal.glow) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = pal.glow;
+  }
   ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  ctx.fillStyle = "rgba(255,255,255,0.12)"; // highlight
+  if (pal.glow) ctx.shadowBlur = 0;
+  ctx.fillStyle = pal.highlight;
   ctx.fillRect(x * size + 1, y * size + 1, size - 2, 4);
   ctx.globalAlpha = 1;
 }
@@ -100,10 +92,11 @@ function drawPanel(
   y: number,
   w: number,
   h: number,
+  pal: TetrisPalette,
 ) {
-  ctx.fillStyle = PANEL_COLOR;
+  ctx.fillStyle = pal.panel;
   ctx.fillRect(x, y, w, h);
-  ctx.strokeStyle = BORDER_COLOR;
+  ctx.strokeStyle = pal.border;
   ctx.lineWidth = 1;
   ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
@@ -113,7 +106,12 @@ const dropIntervalFor = (level: number) =>
   Math.max(0.1, 1 - (level - 1) * 0.09);
 
 // ── Juego ─────────────────────────────────────────────────────────────────────
-export function createTetris(): GameEngine {
+export function createTetris(
+  _assets: unknown,
+  skin: SkinId = DEFAULT_SKIN,
+): GameEngine {
+  // Solo se lee en draw(): update() no depende del skin.
+  const pal = TETRIS_SKINS[skin] ?? TETRIS_SKINS[DEFAULT_SKIN];
   let board: number[][];
   let current: Piece;
   let next: Piece;
@@ -301,7 +299,7 @@ export function createTetris(): GameEngine {
   }
 
   function drawGrid(ctx: CanvasRenderingContext2D) {
-    ctx.strokeStyle = GRID_COLOR;
+    ctx.strokeStyle = pal.grid;
     ctx.lineWidth = 0.5;
     for (let c = 1; c < COLS; c++) {
       ctx.beginPath();
@@ -323,41 +321,41 @@ export function createTetris(): GameEngine {
     const offY = Math.floor((4 - shape.length) / 2);
     for (let r = 0; r < shape.length; r++)
       for (let c = 0; c < shape[r].length; c++)
-        drawBlock(ctx, offX + c, offY + r, shape[r][c], BLOCK);
+        drawBlock(ctx, offX + c, offY + r, shape[r][c], BLOCK, pal);
   }
 
   function draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = BG_COLOR;
+    ctx.fillStyle = pal.background;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     // tablero
-    drawPanel(ctx, BOARD_X, 0, COLS * BLOCK, ROWS * BLOCK);
+    drawPanel(ctx, BOARD_X, 0, COLS * BLOCK, ROWS * BLOCK, pal);
     ctx.save();
     ctx.translate(BOARD_X, 0);
     drawGrid(ctx);
     for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++) drawBlock(ctx, c, r, board[r][c], BLOCK);
+      for (let c = 0; c < COLS; c++) drawBlock(ctx, c, r, board[r][c], BLOCK, pal);
 
     // fantasma (al terminar solo queda la pieza que no cupo)
     if (!isOver()) {
       const gy = ghostY();
       for (let r = 0; r < current.shape.length; r++)
         for (let c = 0; c < current.shape[r].length; c++)
-          drawBlock(ctx, current.x + c, gy + r, current.shape[r][c], BLOCK, 0.2);
+          drawBlock(ctx, current.x + c, gy + r, current.shape[r][c], BLOCK, pal, 0.2);
     }
 
     // pieza actual
     for (let r = 0; r < current.shape.length; r++)
       for (let c = 0; c < current.shape[r].length; c++)
-        drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK);
+        drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK, pal);
     ctx.restore();
 
     // panel NEXT
-    ctx.fillStyle = "#6c6c82";
+    ctx.fillStyle = pal.label;
     ctx.font = "12px monospace";
     ctx.textBaseline = "alphabetic";
     ctx.fillText("NEXT", NEXT_X, NEXT_Y - 10);
-    drawPanel(ctx, NEXT_X, NEXT_Y, 4 * BLOCK, 4 * BLOCK);
+    drawPanel(ctx, NEXT_X, NEXT_Y, 4 * BLOCK, 4 * BLOCK, pal);
     ctx.save();
     ctx.translate(NEXT_X, NEXT_Y);
     drawNext(ctx);

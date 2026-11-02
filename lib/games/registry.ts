@@ -53,6 +53,7 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "lines", label: "LÍNEAS", format: "int" },
       { key: "level", label: "NIVEL", format: "int" },
     ],
+    skins: SKIN_IDS,
     create: createTetris,
   },
   "bloque-buster": {
@@ -68,6 +69,7 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "lives", label: "Vidas", format: "hearts" },
       { key: "level", label: "Nivel", format: "pad2" },
     ],
+    skins: SKIN_IDS,
     create: createArkanoid,
   },
   serpentina: {
@@ -93,6 +95,7 @@ export const GAME_REGISTRY: Record<string, GameDefinition> = {
       { key: "level", label: "NIVEL", format: "int" },
     ],
     assets: { fruits: "/games/snake/fruits.png" },
+    skins: SKIN_IDS,
     create: createSnake,
   },
 };
